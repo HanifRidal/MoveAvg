@@ -1,11 +1,13 @@
 <!-- DataTales Example -->
 <div class="card shadow mb-4">
   <div class="card-header py-3">
-    <!-- <h6 class="m-0 font-weight-bold text-primary">Produksi Telur DataTable</h6> -->
+    <h6 class="m-0 font-weight-bold text-primary mb-2">
+      Produksi Telur DataTable
+    </h6>
     <button
       class="btn bg-success btn-circle btn-sm"
       data-toggle="modal"
-      data-target="#exampleModal"
+      data-target="#addModal"
     >
       <i class="fas fa-plus text-gray-100"></i>
     </button>
@@ -22,7 +24,7 @@
           <tr>
             <th>No</th>
             <th>Tanggal</th>
-            <th>Butir Telur/hari</th>
+            <th>Telur/hari (KG)</th>
             <th>Action</th>
           </tr>
         </thead>
@@ -33,11 +35,13 @@
             <td>bla</td>
             <td>
               <a
-                class="btn bg-warning btn-circle btn-sm"
-                href="/admin/telur/update/id"
+                class="btn bg-warning btn-circle btn-sm button-update"
+                href="javascript:void(0)"
+                data-toggle="modal"
+                type="button"
                 title="Update"
               >
-                <i class="fas fa-exclamation-triangle text-gray-100"></i>
+                <i class="fas fa-edit text-gray-100"></i>
               </a>
               <a
                 class="btn bg-danger btn-circle btn-sm"
@@ -53,5 +57,3 @@
     </div>
   </div>
 </div>
-
-<%- include('add_modal.ejs') %>

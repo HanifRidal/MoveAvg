@@ -37,4 +37,11 @@ module.exports = {
       //   message: req.flash("message"),
     });
   },
+  viewMoveAvg: function (req, res) {
+    res.render("admin/moveavg/view_moveavg", {
+      title: "Moving Average",
+      //   user: req.user,
+      //   message: req.flash("message"),
+    });
+  },
 };

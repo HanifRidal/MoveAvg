@@ -7,5 +7,6 @@ router.post("/telur", adminController.addTelur);
 router.get("/pakan", adminController.viewPakan);
 router.post("/pakan", adminController.addPakan);
 router.get("/pendapatan", adminController.viewPendapatan);
+router.get("/moveavg", adminController.viewMoveAvg);
 
 module.exports = router;

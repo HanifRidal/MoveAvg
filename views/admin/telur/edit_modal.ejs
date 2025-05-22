@@ -1,7 +1,7 @@
 <!-- Modal -->
 <div
   class="modal fade"
-  id="addModal"
+  id="editModal"
   tabindex="-1"
   role="dialog"
   aria-labelledby="exampleModalLabel"
@@ -10,9 +10,7 @@
   <div class="modal-dialog" role="document">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="exampleModalLabel">
-          Tambah data pengeluaran pakan
-        </h5>
+        <h5 class="modal-title" id="exampleModalLabel">Update data telur</h5>
         <button
           type="button"
           class="close"
@@ -23,23 +21,14 @@
         </button>
       </div>
       <div class="modal-body">
-        <form action="/admin/pakan" method="POST">
+        <form action="/admin/telur" method="POST">
           <div class="form-group">
-            <label for="jumlah">Jumlah Pakan</label>
+            <label for="exampleInputEmail1">Jumlah Telur</label>
             <input
               name="jumlah"
               class="form-control form-control-sm"
               type="number"
-              placeholder="Pengeluaran Pakan"
-            />
-          </div>
-          <div class="form-group">
-            <label for="jumlah">Harga Pakan</label>
-            <input
-              name="harga"
-              class="form-control form-control-sm"
-              type="number"
-              placeholder="Rp. "
+              placeholder="Jumlah Telur"
             />
           </div>
           <div class="form-group">
