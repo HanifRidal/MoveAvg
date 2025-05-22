@@ -1,12 +1,24 @@
 const router = require("express").Router();
 const adminController = require("../controllers/adminController");
 
+//#region Dashboard Function
 router.get("/dashboard", adminController.viewDashboard);
+//#endregion Dashboard Function
+
+//#region Telur Function
 router.get("/telur", adminController.viewTelur);
+router.get('/telur/:id', adminController.getTelurById);
+router.post('/telur/update/:id', adminController.updateTelur);
 router.post("/telur", adminController.addTelur);
+//#region Telur Function
+
+//#region Pakan Function
 router.get("/pakan", adminController.viewPakan);
 router.post("/pakan", adminController.addPakan);
+//#endregion Pakan Function
+
+//#region Pakan&MoveAvg Function
 router.get("/pendapatan", adminController.viewPendapatan);
 router.get("/moveavg", adminController.viewMoveAvg);
-
+//#endregion Pakan&MoveAvg Function
 module.exports = router;

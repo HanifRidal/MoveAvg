@@ -1,43 +1,79 @@
 <%- include('../../partials/header.ejs') %>
-<!-- Page Wrapper -->
-<div id="wrapper">
-  <%- include('../../partials/sidebar.ejs') %>
+  <!-- Page Wrapper -->
+  <div id="wrapper">
+    <%- include('../../partials/sidebar.ejs') %>
 
-  <!-- Content Wrapper -->
-  <div id="content-wrapper" class="d-flex flex-column">
-    <!-- Main Content -->
-    <div id="content">
-      <%- include('../../partials/navbar.ejs') %>
+      <!-- Content Wrapper -->
+      <div id="content-wrapper" class="d-flex flex-column">
+        <!-- Main Content -->
+        <div id="content">
+          <%- include('../../partials/navbar.ejs') %>
 
-      <!-- Begin Page Content -->
-      <div class="container-fluid">
-        <!-- Page Heading -->
-        <h1 class="h3 mb-4 text-gray-800">Telur</h1>
-        <!-- End of Page Heading -->
+            <!-- Begin Page Content -->
+            <div class="container-fluid">
+              <!-- Page Heading -->
+              <h1 class="h3 mb-4 text-gray-800">Telur</h1>
+              <!-- End of Page Heading -->
 
-        <%- include('./table', { telur: telur }) %>
+              <%- include('./table', { telur: telur }) %>
+            </div>
+            <!-- /.container-fluid -->
+        </div>
+        <!-- End of Main Content -->
+
+        <%- include('../../partials/footer.ejs') %>
       </div>
-      <!-- /.container-fluid -->
-    </div>
-    <!-- End of Main Content -->
-
-    <%- include('../../partials/footer.ejs') %>
+      <!-- End of Content Wrapper -->
   </div>
-  <!-- End of Content Wrapper -->
-</div>
-<!-- End of Page Wrapper -->
+  <!-- End of Page Wrapper -->
 
-<!-- Scroll to Top Button-->
-<a class="scroll-to-top rounded" href="#page-top">
-  <i class="fas fa-angle-up"></i>
-</a>
+  <!-- Scroll to Top Button-->
+  <a class="scroll-to-top rounded" href="#page-top">
+    <i class="fas fa-angle-up"></i>
+  </a>
 
-<%- include('add_modal.ejs') %> <%- include('edit_modal.ejs') %> <%-
-include('../../partials/logout_modal.ejs') %> <%-
-include('../../partials/script.ejs') %>
+  <%- include('add_modal.ejs') %> <%- include('edit_modal.ejs') %> <%- include('../../partials/logout_modal.ejs') %> <%-
+          include('../../partials/script.ejs') %>
 
-<script>
-  $("#dataTable").on("click", ".button-update", function () {
-    $("#editModal").modal("show");
-  });
-</script>
+          <script>
+            $("#dataTable").on("click", ".button-update", function () {
+              $("#editModal").modal("show");
+            });
+            $('form').on('submit', function () {
+              $(this).find('button[type="submit"]').prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Adding...');
+            });
+
+            $(document).ready(function () {
+              // Handle edit button click
+              $("#dataTable").on("click", ".button-update", function () {
+                // Get data from button attributes
+                const id = $(this).data('id');
+                const jumlah = $(this).data('jumlah');
+                const tanggal = $(this).data('tanggal');
+
+                console.log("Editing telur data:", { id, jumlah, tanggal });
+
+                // Set form action with the correct ID
+                $("#editForm").attr("action", `/admin/telur/update/${id}`);
+
+                // Populate form fields
+                $("#editId").val(id);
+                $("#editJumlah").val(jumlah);
+                $("#editTanggal").val(formatDateForClientSide(tanggal));
+              });
+
+              // Client-side date formatting function
+              function formatDateForClientSide(dateString) {
+                if (!dateString) return '';
+
+                // Try to parse the date
+                const date = new Date(dateString);
+
+                // Check if date is valid
+                if (isNaN(date.getTime())) return '';
+
+                // Format as YYYY-MM-DD for input type="date"
+                return date.toISOString().split('T')[0];
+              }
+            });
+          </script>

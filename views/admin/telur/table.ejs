@@ -2,40 +2,34 @@
 <div class="card shadow mb-4">
   <div class="card-header py-3">
     <!-- <h6 class="m-0 font-weight-bold text-primary">Produksi Telur DataTable</h6> -->
-    <button
-      class="btn bg-success btn-circle btn-sm"
-      data-toggle="modal"
-      data-target="#exampleModal"
-    >
+    <button class="btn bg-success btn-circle btn-sm" data-toggle="modal" data-target="#addModal">
       <i class="fas fa-plus text-gray-100"></i>
     </button>
   </div>
 
   <div class="card-body">
     <div class="table-responsive">
-      <!-- Debug info -->
-      <div
-        style="
+      <% if (locals.error) { %>
+        <div class="alert alert-danger">
+          <%= error %>
+        </div>
+        <!-- Debug info -->
+        <div style="
           background: #f8f9fc;
           padding: 10px;
           margin-bottom: 10px;
           border: 1px solid #ddd;
-        "
-      >
-        <strong>Debug Info:</strong>
-        <pre>
-<%= typeof telur !== 'undefined' ? `Data type: ${typeof telur}, Is array: ${Array.isArray(telur)}, Length: ${Array.isArray(telur) ? telur.length : 'N/A'}` : 'telur is undefined' %></pre
-        >
-        <% if (typeof telur !=='undefined' && Array.isArray(telur) &&
-        telur.length> 0) { %>
-        <strong>First item properties:</strong>
-        <%= Object.keys(telur[0]).join(', ') %> <% } %>
+        ">
+          <strong>Debug Info:</strong>
+          <pre>
+        <%= typeof telur !== 'undefined' ? `Data type: ${typeof telur}, Is array: ${Array.isArray(telur)}, Length: ${Array.isArray(telur) ? telur.length : 'N/A'}` : 'telur is undefined' %></pre>
+          <% if (typeof telur !=='undefined' && Array.isArray(telur) && telur.length> 0) { %>
+            <strong>First item properties:</strong>
+            <%= Object.keys(telur[0]).join(', ') %> <% } %>
       </div>
-
-      <% if (locals.error) { %>
-      <div class="alert alert-danger"><%= error %></div>
-      <% } %> <% if (locals.telur && Array.isArray(telur) && telur.length > 0) {
-      %> <% console.log("Telur data:", JSON.stringify(telur)); %>
+      <% } %> 
+      <% if (locals.telur && Array.isArray(telur) && telur.length > 0) {%> 
+      <% console.log("Telur data:", JSON.stringify(telur)); %>
       <table
         class="table table-bordered"
         id="dataTable"
@@ -53,34 +47,34 @@
         <tbody>
           <% telur.forEach(item=> { %>
           <tr>
-            <td><%= item.Id || item.id || ' N/A' %></td>
-            <td><%= item.Tanggal || item.tanggal || 'N/A' %></td>
-            <td><%= item.Telur_kg || item.telur_kg || 'N/A' %></td>
-            <td>
-              <a
-                class="btn bg-warning btn-circle btn-sm"
-                href="/admin/telur/update/id"
-                title="Update"
-              >
-                <i class="fas fa-exclamation-triangle text-gray-100"></i>
-              </a>
-              <a
-                class="btn bg-danger btn-circle btn-sm"
-                href="/admin/telur/delete/id"
-                title="Delete"
-              >
-                <i class="fas fa-trash text-gray-100"></i>
-              </a>
-            </td>
-          </tr>
-          <% }) %>
-        </tbody>
-      </table>
-      <% } else { %>
-      <p>No data available</p>
-      <% } %>
+            <td><%= item.Id || item.id || ' N/A' %>
+              </td>
+              <td>
+                <%= formatDateIndonesian(item.Tanggal || item.tanggal) %>
+              </td>
+              <td>
+                <%= item.Telur_kg || item.telur_kg || 'N/A' %>
+              </td>
+              <td>
+                <button class="btn bg-warning btn-circle btn-sm button-update" data-id="<%= item.Id || item.id %>"
+                  data-jumlah="<%= item.Telur_kg || item.telur_kg %>" data-tanggal="<%= item.Tanggal || item.tanggal %>"
+                  title="Update">
+                  <i class="fas fa-edit text-gray-100"></i>
+                </button>
+                <a class="btn bg-danger btn-circle btn-sm" href="/admin/telur/delete/<%= item.Id || item.id %>"
+                  title="Delete">
+                  <i class="fas fa-trash text-gray-100"></i>
+                </a>
+              </td>
+              </tr>
+              <% }) %>
+                </tbody>
+                </table>
+                <% } else { %>
+                  <p>No data available</p>
+                  <% } %>
+        </div>
     </div>
   </div>
-</div>
 
-<%- include('add_modal.ejs') %>
+  <%- include('add_modal.ejs') %>
