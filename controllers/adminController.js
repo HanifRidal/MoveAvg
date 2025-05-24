@@ -137,12 +137,55 @@ module.exports = {
   
   //#region Pakan Function
 
-  viewPakan: function (req, res) {
-    res.render("admin/pakan/view_pakan", {
-      title: "pakan",
-      //   user: req.user,
-      //   message: req.flash("message"),
-    });
+  viewPakan: async function (req, res) {
+   try {
+      // Get telur data from API
+      const response = await axios.get('http://localhost:3001/api/pakan');
+
+      // Extract the array from the response
+      let pakanArray;
+
+      if (Array.isArray(response.data)) {
+        // If response.data is already an array
+        pakanArray = response.data;
+      } else if (typeof response.data === 'object') {
+        // If response.data is an object, look for common array properties
+        // Log all keys to help find where the array might be
+        console.log('Response keys:', Object.keys(response.data));
+
+        // Check common array properties
+        pakanArray = response.data.data ||
+          response.data.pakan ||
+          response.data.results ||
+          response.data.items ||
+          response.data.records;
+
+        // If still not found, check if any property is an array
+        if (!pakanArray) {
+          for (const key in response.data) {
+            if (Array.isArray(response.data[key])) {
+              pakanArray = response.data[key];
+              console.log('Found array in property:', key);
+              break;
+            }
+          }
+        }
+      }
+
+      // Default to empty array if nothing found
+      pakanArray = pakanArray || [];
+
+      res.render("admin/pakan/view_pakan", {
+        title: "pakan",
+        pakan: pakanArray,
+      });
+    } catch (error) {
+      console.error('Error fetching pakan data:', error);
+      res.render("admin/pakan/view_pakan", {
+        title: "pakan",
+        error: "Failed to load data",
+      });
+    }
   },
   addPakan: (req, res) => {
     const { jumlah, harga, tanggal } = req.body;

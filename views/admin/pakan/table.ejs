@@ -4,16 +4,34 @@
     <h6 class="m-0 font-weight-bold text-primary mb-2">
       Pengeluaran Pakan DataTable
     </h6>
-    <button
-      class="btn bg-success btn-circle btn-sm"
-      data-toggle="modal"
-      data-target="#exampleModal"
-    >
+    <button class="btn bg-success btn-circle btn-sm" data-toggle="modal" data-target="#exampleModal">
       <i class="fas fa-plus text-gray-100"></i>
     </button>
   </div>
   <div class="card-body">
     <div class="table-responsive">
+      <% if (locals.error) { %>
+        <div class="alert alert-danger">
+          <%= error %>
+        </div>
+        <!-- Debug info -->
+        <div style="
+          background: #f8f9fc;
+          padding: 10px;
+          margin-bottom: 10px;
+          border: 1px solid #ddd;
+        ">
+          <strong>Debug Info:</strong>
+          <pre>
+        <%= typeof pakan !== 'undefined' ? `Data type: ${typeof pakan}, Is array: ${Array.isArray(pakan)}, Length: ${Array.isArray(pakan) ? pakan.length : 'N/A'}` : 'pakan is undefined' %></pre>
+          <% if (typeof pakan !=='undefined' && Array.isArray(pakan) && pakan.length> 0) { %>
+            <strong>First item properties:</strong>
+            <%= Object.keys(pakan[0]).join(', ') %> <% } %>
+      </div>
+      <% } %>
+      
+      <% if (locals.pakan && Array.isArray(pakan) && pakan.length > 0) {%> 
+      <% console.log("pakan data:", JSON.stringify(pakan)); %>
       <table
         class="table table-bordered"
         id="dataTable"
@@ -25,37 +43,36 @@
             <th>No</th>
             <th>Tanggal</th>
             <th>Pakan Harian /Kg</th>
-            <th>Harga Pakan</th>
             <th>Action</th>
           </tr>
         </thead>
         <tbody>
+          <% pakan.forEach(item=> { %>
           <tr>
-            <td>1</td>
-            <td>bla</td>
-            <td>bla</td>
-            <td>bla</td>
-            <td>
-              <a
-                class="btn bg-warning btn-circle btn-sm button-update"
-                href="javascript:void(0)"
-                data-toggle="modal"
-                type="button"
-                title="Update"
-              >
-                <i class="fas fa-edit text-gray-100"></i>
-              </a>
-              <a
-                class="btn bg-danger btn-circle btn-sm"
-                href="/admin/telur/delete/id"
-                title="Delete"
-              >
-                <i class="fas fa-trash text-gray-100"></i>
-              </a>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+            <td><%= item.Id || item.id || ' N/A' %>
+              </td>
+              <td>
+                <%= formatDateIndonesian(item.Tanggal || item.tanggal) %>
+              </td>
+              <td>
+                <%= item.Pakan_kg || item.pakan_kg || 'N/A' %>
+              </td>
+              <td>
+                <a class="btn bg-warning btn-circle btn-sm button-update" href="javascript:void(0)" data-toggle="modal"
+                  type="button" title="Update">
+                  <i class="fas fa-edit text-gray-100"></i>
+                </a>
+                <a class="btn bg-danger btn-circle btn-sm" href="/admin/pakan/delete/id" title="Delete">
+                  <i class="fas fa-trash text-gray-100"></i>
+                </a>
+              </td>
+              </tr>
+              <% }) %>
+                </tbody>
+                </table>
+                <% } else { %>
+                  <p>No data available</p>
+                  <% } %>
+        </div>
     </div>
   </div>
-</div>

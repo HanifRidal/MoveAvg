@@ -15,7 +15,8 @@
         <h1 class="h3 mb-4 text-gray-800">Pakan</h1>
         <!-- End of Page Heading -->
 
-        <%- include('card.ejs') %> <%- include('table.ejs') %>
+        <%- include('card.ejs') %> 
+        <%- include('./table', { pakan: pakan }) %>
       </div>
       <!-- /.container-fluid -->
     </div>
