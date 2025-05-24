@@ -223,6 +223,9 @@ module.exports = {
       //   message: req.flash("message"),
     });
   },
+  //#endregion Pakan Function
+
+  //#region Moving Average Function
   viewMoveAvg: function (req, res) {
     res.render("admin/moveavg/view_moveavg", {
       title: "Moving Average",
@@ -230,5 +233,5 @@ module.exports = {
       //   message: req.flash("message"),
     });
   },
-  //#endregion Pakan Function
+  //#endregion Moving Average Function
 };
