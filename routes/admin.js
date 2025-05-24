@@ -15,6 +15,8 @@ router.post("/telur", adminController.addTelur);
 //#region Pakan Function
 router.get("/pakan", adminController.viewPakan);
 router.post("/pakan", adminController.addPakan);
+router.get('/pakan/:id', adminController.getPakanById);
+router.post('/pakan/update/:id', adminController.updatePakan);
 //#endregion Pakan Function
 
 //#region Pakan&MoveAvg Function

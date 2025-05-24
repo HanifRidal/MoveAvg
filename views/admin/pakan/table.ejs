@@ -58,11 +58,13 @@
                 <%= item.Pakan_kg || item.pakan_kg || 'N/A' %>
               </td>
               <td>
-                <a class="btn bg-warning btn-circle btn-sm button-update" href="javascript:void(0)" data-toggle="modal"
-                  type="button" title="Update">
+                <button class="btn bg-warning btn-circle btn-sm button-update" data-id="<%= item.Id || item.id %>"
+                  data-jumlah="<%= item.Pakan_kg || item.pakan_kg %>" data-tanggal="<%= item.Tanggal || item.tanggal %>"
+                  title="Update">
                   <i class="fas fa-edit text-gray-100"></i>
-                </a>
-                <a class="btn bg-danger btn-circle btn-sm" href="/admin/pakan/delete/id" title="Delete">
+                </button>
+                <a class="btn bg-danger btn-circle btn-sm" href="/admin/pakan/delete/<%= item.Id || item.id %>"
+                  title="Delete">
                   <i class="fas fa-trash text-gray-100"></i>
                 </a>
               </td>

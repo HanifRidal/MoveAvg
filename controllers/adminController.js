@@ -136,7 +136,6 @@ module.exports = {
   //#endregion Telur Function
   
   //#region Pakan Function
-
   viewPakan: async function (req, res) {
    try {
       // Get telur data from API
@@ -216,6 +215,48 @@ module.exports = {
       res.status(500).redirect("/admin/pakan");
     }
   },
+
+  updatePakan: async (req, res) => {
+    try {
+      const id = req.params.id;
+      const { jumlah, tanggal } = req.body;
+      
+      // Log the received data
+      console.log("Updating pakan data:", { id, jumlah, tanggal });
+      
+      // Prepare the data in the required format
+      const pakanData = {
+        "Tanggal": tanggal,
+        "Pakan_kg": jumlah
+      };
+      
+      // Send PUT request to API
+      const response = await axios.put(`http://localhost:3001/api/pakan/update/${id}`, pakanData);
+      
+      console.log("API response:", response.data);
+      
+      // Redirect back to pakan page
+      // Set success message (if using flash messages)
+      req.flash('success', 'pakan data updated successfully');
+      res.redirect("/admin/pakan");
+    } catch (error) {
+      console.error("Error updating pakan data:", error.message);
+      res.status(500).redirect("/admin/pakan");
+    }
+  },
+
+  getPakanById: async (req, res) => {
+    try {
+      const id = req.params.id;
+      const response = await axios.get(`http://localhost:3001/api/produksi/pakan/find/${id}`);
+      
+      res.json(response.data);
+    } catch (error) {
+      console.error("Error fetching pakan data:", error.message);
+      res.status(500).json({ error: "Failed to fetch pakan data" });
+    }
+  },
+
   viewPendapatan: function (req, res) {
     res.render("admin/pendapatan/view_pendapatan", {
       title: "Pendapatan",
