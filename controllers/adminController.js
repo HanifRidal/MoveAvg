@@ -187,10 +187,34 @@ module.exports = {
       });
     }
   },
-  addPakan: (req, res) => {
-    const { jumlah, harga, tanggal } = req.body;
-    console.log(jumlah, harga, tanggal);
-    res.redirect("/admin/pakan");
+  addPakan: async(req, res) => {
+    try {
+      const { jumlah, tanggal } = req.body;
+
+      // Log the received data
+      console.log("Received form data:", { jumlah, tanggal });
+
+      // Prepare the data in the required format
+      const pakanData = {
+        "Tanggal": tanggal,
+        "Pakan_kg": jumlah
+      };
+
+      // Send POST request to API
+      const response = await axios.post('http://localhost:3001/api/pakan/add', pakanData);
+
+      console.log("API response:", response.data);
+
+      // Redirect back to pakan page
+      // Set success message (if using flash messages)
+      req.flash('success', 'pakan data added successfully');
+      res.redirect("/admin/pakan");
+    } catch (error) {
+      console.error("Error adding pakan data:", error.message);
+      // You could add flash messages here if you have that middleware set up
+      
+      res.status(500).redirect("/admin/pakan");
+    }
   },
   viewPendapatan: function (req, res) {
     res.render("admin/pendapatan/view_pendapatan", {
