@@ -1,4 +1,4 @@
-<div class="container-fluid">
+<div class="container-fluid px-0">
   <!-- Content Row -->
 
   <div class="row">
@@ -9,7 +9,7 @@
         <div
           class="card-header py-3 d-flex flex-row align-items-center justify-content-between"
         >
-          <h6 class="m-0 font-weight-bold text-primary">Earnings Overview</h6>
+          <h6 class="m-0 font-weight-bold text-primary">Production Forecast Overview</h6>
           <div class="dropdown no-arrow">
             <a
               class="dropdown-toggle"
@@ -26,25 +26,20 @@
               class="dropdown-menu dropdown-menu-right shadow animated--fade-in"
               aria-labelledby="dropdownMenuLink"
             >
-              <div class="dropdown-header">Dropdown Header:</div>
-              <a class="dropdown-item" href="#">Action</a>
-              <a class="dropdown-item" href="#">Another action</a>
+              <div class="dropdown-header">Chart Options:</div>
+              <a class="dropdown-item" href="#" id="downloadChartImage">Download as Image</a>
+              <a class="dropdown-item" href="#" id="toggleDatasetsTelur">Toggle Telur Datasets</a>
+              <a class="dropdown-item" href="#" id="toggleDatasetsPakan">Toggle Pakan Datasets</a>
               <div class="dropdown-divider"></div>
-              <a class="dropdown-item" href="#">Something else here</a>
+              <a class="dropdown-item" href="#" id="showActualOnly">Show Actual Only</a>
+              <a class="dropdown-item" href="#" id="showForecastOnly">Show Forecast Only</a>
+              <a class="dropdown-item" href="#" id="showAllDatasets">Show All Datasets</a>
             </div>
           </div>
         </div>
         <!-- Card Body -->
         <div class="card-body">
           <div class="chart-area">
-            <div class="chartjs-size-monitor">
-              <div class="chartjs-size-monitor-expand">
-                <div class=""></div>
-              </div>
-              <div class="chartjs-size-monitor-shrink">
-                <div class=""></div>
-              </div>
-            </div>
             <canvas
               id="myAreaChart"
               width="811"
@@ -64,7 +59,7 @@
         <div
           class="card-header py-3 d-flex flex-row align-items-center justify-content-between"
         >
-          <h6 class="m-0 font-weight-bold text-primary">Revenue Sources</h6>
+          <h6 class="m-0 font-weight-bold text-primary">Feed Conversion Analysis</h6>
           <div class="dropdown no-arrow">
             <a
               class="dropdown-toggle"
@@ -81,25 +76,17 @@
               class="dropdown-menu dropdown-menu-right shadow animated--fade-in"
               aria-labelledby="dropdownMenuLink"
             >
-              <div class="dropdown-header">Dropdown Header:</div>
-              <a class="dropdown-item" href="#">Action</a>
-              <a class="dropdown-item" href="#">Another action</a>
+              <div class="dropdown-header">Chart Options:</div>
+              <a class="dropdown-item" href="#" id="downloadPieChartImage">Download as Image</a>
+              <a class="dropdown-item" href="#" id="togglePieLabels">Toggle Labels</a>
               <div class="dropdown-divider"></div>
-              <a class="dropdown-item" href="#">Something else here</a>
+              <a class="dropdown-item" href="#" id="showPieInfo">What is FCR?</a>
             </div>
           </div>
         </div>
         <!-- Card Body -->
         <div class="card-body">
           <div class="chart-pie pt-4 pb-2">
-            <div class="chartjs-size-monitor">
-              <div class="chartjs-size-monitor-expand">
-                <div class=""></div>
-              </div>
-              <div class="chartjs-size-monitor-shrink">
-                <div class=""></div>
-              </div>
-            </div>
             <canvas
               id="myPieChart"
               width="811"
@@ -110,13 +97,13 @@
           </div>
           <div class="mt-4 text-center small">
             <span class="mr-2">
-              <i class="fas fa-circle text-primary"></i> Direct
+              <i class="fas fa-circle text-primary"></i> Actual FCR
             </span>
             <span class="mr-2">
-              <i class="fas fa-circle text-success"></i> Social
+              <i class="fas fa-circle text-success"></i> Forecast FCR
             </span>
             <span class="mr-2">
-              <i class="fas fa-circle text-info"></i> Referral
+              <i class="fas fa-circle text-info"></i> Difference
             </span>
           </div>
         </div>

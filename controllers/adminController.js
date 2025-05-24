@@ -87,7 +87,7 @@ module.exports = {
     } catch (error) {
       console.error("Error adding telur data:", error.message);
       // You could add flash messages here if you have that middleware set up
-      
+
       res.status(500).redirect("/admin/telur");
     }
   },
@@ -96,34 +96,34 @@ module.exports = {
     try {
       const id = req.params.id;
       const response = await axios.get(`http://localhost:3001/api/produksi/telur/find/${id}`);
-      
+
       res.json(response.data);
     } catch (error) {
       console.error("Error fetching telur data:", error.message);
       res.status(500).json({ error: "Failed to fetch telur data" });
     }
   },
-  
+
   // Update telur data
   updateTelur: async (req, res) => {
     try {
       const id = req.params.id;
       const { jumlah, tanggal } = req.body;
-      
+
       // Log the received data
       console.log("Updating telur data:", { id, jumlah, tanggal });
-      
+
       // Prepare the data in the required format
       const telurData = {
         "Tanggal": tanggal,
         "Telur_kg": jumlah
       };
-      
+
       // Send PUT request to API
       const response = await axios.put(`http://localhost:3001/api/produksi/telur/edit/${id}`, telurData);
-      
+
       console.log("API response:", response.data);
-      
+
       // Redirect back to telur page
       // Set success message (if using flash messages)
       req.flash('success', 'Telur data updated successfully');
@@ -134,10 +134,10 @@ module.exports = {
     }
   },
   //#endregion Telur Function
-  
+
   //#region Pakan Function
   viewPakan: async function (req, res) {
-   try {
+    try {
       // Get telur data from API
       const response = await axios.get('http://localhost:3001/api/pakan');
 
@@ -186,7 +186,7 @@ module.exports = {
       });
     }
   },
-  addPakan: async(req, res) => {
+  addPakan: async (req, res) => {
     try {
       const { jumlah, tanggal } = req.body;
 
@@ -211,7 +211,7 @@ module.exports = {
     } catch (error) {
       console.error("Error adding pakan data:", error.message);
       // You could add flash messages here if you have that middleware set up
-      
+
       res.status(500).redirect("/admin/pakan");
     }
   },
@@ -220,21 +220,21 @@ module.exports = {
     try {
       const id = req.params.id;
       const { jumlah, tanggal } = req.body;
-      
+
       // Log the received data
       console.log("Updating pakan data:", { id, jumlah, tanggal });
-      
+
       // Prepare the data in the required format
       const pakanData = {
         "Tanggal": tanggal,
         "Pakan_kg": jumlah
       };
-      
+
       // Send PUT request to API
       const response = await axios.put(`http://localhost:3001/api/pakan/update/${id}`, pakanData);
-      
+
       console.log("API response:", response.data);
-      
+
       // Redirect back to pakan page
       // Set success message (if using flash messages)
       req.flash('success', 'pakan data updated successfully');
@@ -249,7 +249,7 @@ module.exports = {
     try {
       const id = req.params.id;
       const response = await axios.get(`http://localhost:3001/api/produksi/pakan/find/${id}`);
-      
+
       res.json(response.data);
     } catch (error) {
       console.error("Error fetching pakan data:", error.message);
@@ -267,12 +267,49 @@ module.exports = {
   //#endregion Pakan Function
 
   //#region Moving Average Function
-  viewMoveAvg: function (req, res) {
-    res.render("admin/moveavg/view_moveavg", {
-      title: "Moving Average",
-      //   user: req.user,
-      //   message: req.flash("message"),
-    });
+  viewMoveAvg: async function (req, res) {
+    try {
+      res.render("admin/moveavg/view_moveavg", {
+        title: "Moving Average Forecast",
+        window: req.query.window || 4,
+        periods: req.query.periods || 6
+      });
+    } catch (error) {
+      console.error("Error rendering moving average page:", error);
+      res.status(500).send("Error loading moving average forecast page");
+    }
   },
+
+  // API endpoint to get forecast data
+  getForecasts: async function (req, res) {
+    try {
+      // Get the window and periods parameters, default to 4 and 6 if not provided
+      const window = req.query.window || 4;
+      const periods = req.query.periods || 4;
+
+      // Fetch telur forecast data
+      const telurResponse = await axios.get(
+        `http://localhost:3001/api/v1/forecast/telur/total_telur_kg/${window}/${periods}`
+      );
+
+      // Fetch pakan forecast data
+      const pakanResponse = await axios.get(
+        `http://localhost:3001/api/v1/forecast/pakan/total_pakan_kg/${window}/${periods}`
+      );
+
+      // Return the combined forecast data
+      res.json({
+        telur: telurResponse.data,
+        pakan: pakanResponse.data
+      });
+      console.log("Forecast data fetched successfully");
+    } catch (error) {
+      console.error("Error fetching forecast data:", error.message);
+      res.status(500).json({
+        error: "Failed to fetch forecast data",
+        message: error.message
+      });
+    }
+  }
   //#endregion Moving Average Function
 };

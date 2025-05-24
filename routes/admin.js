@@ -22,5 +22,7 @@ router.post('/pakan/update/:id', adminController.updatePakan);
 //#region Pakan&MoveAvg Function
 router.get("/pendapatan", adminController.viewPendapatan);
 router.get("/moveavg", adminController.viewMoveAvg);
+router.get("/forecasts", adminController.getForecasts);
+
 //#endregion Pakan&MoveAvg Function
 module.exports = router;
