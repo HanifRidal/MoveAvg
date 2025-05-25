@@ -293,14 +293,14 @@ module.exports = {
       );
 
       // Fetch pakan forecast data (jika diperlukan juga)
-      // const pakanResponse = await axios.get(
-      //   `http://localhost:3001/api/v1/forecast/pakan/total_pakan_kg/${window}/${periods}`
-      // );
+      const pakanResponse = await axios.get(
+        `http://localhost:3001/api/v1/forecast/pakan/total_Pakan_kg/${window}/${periods}`
+      );
 
       // Return the combined forecast data
       res.json({
         telur: telurResponse.data,
-        // pakan: pakanResponse.data // Anda bisa juga hanya mengirim data telur jika hanya itu yang dibutuhkan
+        pakan: pakanResponse.data // Anda bisa juga hanya mengirim data telur jika hanya itu yang dibutuhkan
       });
       console.log("Forecast data fetched successfully for window:", window, "periods:", periods);
     } catch (error) {
