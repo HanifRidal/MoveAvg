@@ -281,28 +281,28 @@ module.exports = {
   },
 
   // API endpoint to get forecast data
-  getForecasts: async function (req, res) {
+ getForecasts: async function (req, res) {
     try {
       // Get the window and periods parameters, default to 4 and 6 if not provided
-      const window = req.query.window || 4;
-      const periods = req.query.periods || 4;
+      const window = req.query.window || 4; // Mengambil dari query string
+      const periods = req.query.periods || 4; // Mengambil dari query string
 
       // Fetch telur forecast data
       const telurResponse = await axios.get(
         `http://localhost:3001/api/v1/forecast/telur/total_telur_kg/${window}/${periods}`
       );
 
-      // Fetch pakan forecast data
-      const pakanResponse = await axios.get(
-        `http://localhost:3001/api/v1/forecast/pakan/total_pakan_kg/${window}/${periods}`
-      );
+      // Fetch pakan forecast data (jika diperlukan juga)
+      // const pakanResponse = await axios.get(
+      //   `http://localhost:3001/api/v1/forecast/pakan/total_pakan_kg/${window}/${periods}`
+      // );
 
       // Return the combined forecast data
       res.json({
         telur: telurResponse.data,
-        pakan: pakanResponse.data
+        // pakan: pakanResponse.data // Anda bisa juga hanya mengirim data telur jika hanya itu yang dibutuhkan
       });
-      console.log("Forecast data fetched successfully");
+      console.log("Forecast data fetched successfully for window:", window, "periods:", periods);
     } catch (error) {
       console.error("Error fetching forecast data:", error.message);
       res.status(500).json({
