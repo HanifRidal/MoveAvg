@@ -12,6 +12,105 @@ module.exports = {
       res.redirect("admin/signin");
     }
   },
+  // Add this to the module.exports object
+viewUser: async function (req, res) {
+  try {
+    // Mock user data for development - REPLACE THIS WITH YOUR ACTUAL API CALL
+    // const userData = {
+    //   fullname: "User Example",
+    //   username: "user_example",
+    //   email: "user@example.com"
+    // };
+    let userData;
+    const userAuthToken = req.cookies.authToken;
+    const response = await axios.get('http://localhost:3001/api/auth/profile', {
+        headers: { 'Cookie': `authToken=${userAuthToken}` },
+        withCredentials: true
+      });
+    userData = response.data.data; // This is where your user object is located
+
+    // Render the view and pass the user data
+    res.render("admin/user/view_user", {
+      title: "Dafa Farm | User Profile",
+      user: userData, // THIS IS CRITICAL - pass user data to the view
+      error: null
+    });
+    
+  } catch (error) {
+    console.error("Error in viewUser:", error);
+    
+    res.render("admin/user/view_user", {
+      title: "Dafa Farm | User Profile",
+      user: null, // Still send user as null when there's an error
+      error: "Error fetching profile data: " + error.message
+    });
+  }
+},
+
+changePassword: async function(req, res) {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    
+    // Basic validation
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "Current password and new password are required"
+      });
+    }
+    
+    if (newPassword.length < 8) {
+      return res.status(400).json({
+        success: false,
+        message: "New password must be at least 8 characters long"
+      });
+    }
+    
+    const userAuthToken = req.cookies.authToken;
+    const axiosConfig = {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    };
+    
+    if (userAuthToken) {
+      axiosConfig.headers.Cookie = `authToken=${userAuthToken}`;
+    }
+    
+    // Call the backend API to change password
+    const response = await axios.put(
+      "http://localhost:3001/api/auth/change_password", 
+      { currentPassword, newPassword },
+      axiosConfig
+    );
+    return res.json({
+      success: true,
+      message: "Password updated successfully"
+    });
+    
+  } catch (error) {
+    console.error("Error changing password:", error.response?.data || error.message);
+  
+  // Handle specific error cases
+  if (error.response?.status === 401) {
+    return res.status(401).json({
+      success: false,
+      message: "Current password is incorrect"
+    });
+  } else if (error.response?.status === 400) {
+    return res.status(400).json({
+      success: false,
+      message: error.response?.data?.message || "Invalid password format"
+    });
+  }
+  
+  // General error case
+  return res.status(error.response?.status || 500).json({
+    success: false,
+    message: error.response?.data?.message || "Failed to update password"
+  });
+  }
+},
   //#region Dashboard Function
   viewDashboard: function (req, res) {
     res.render("admin/dashboard/view_dashboard", {
@@ -411,12 +510,6 @@ module.exports = {
   //#endregion Moving Average Function
 
   //#region User Function
-  viewUser: function (req, res) {
-    res.render("admin/user/view_user", {
-      title: "Dafa Farm | User",
-      //   user: req.user,
-      //   message: req.flash("message"),
-    });
-  },
+
   //#endregion User Function
 };

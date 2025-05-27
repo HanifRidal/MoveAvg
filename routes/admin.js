@@ -29,6 +29,7 @@ router.get("/forecasts", adminController.getForecasts);
 
 //#region Pakan&MoveAvg Function
 router.get("/user", adminController.viewUser);
+router.post('/user/change_password', adminController.changePassword);
 // router.get("/moveavg", adminController.viewMoveAvg);
 // router.get("/forecasts", adminController.getForecasts);
 
