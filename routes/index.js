@@ -36,7 +36,7 @@ router.post("/admin/signin", async function (req, res) {
     res.redirect("/admin/dashboard");
   } catch (error) {
     // If login fails, redirect back to login page
-    res.redirect("/");
+    res.redirect("/error");
   }
 });
 
