@@ -9,7 +9,10 @@
 
   <div class="card-body">
     <div class="table-responsive">
-        <table >
+        <table class="table table-bordered"
+        id="dataTable"
+        width="100%"
+        cellspacing="0">
             <tr>
                 <td>Fullname<br></td>
                 <td></td>
@@ -25,10 +28,13 @@
                 <td></td>
                 <td><strong>: <%=  %></strong><br></td>
             </tr>
+            <td>
+
+                <button class="btn bg-warning btn-sm button-update mt-4" data-id="editModal" data-target="#editModal" data-jumlah="" data-tanggal="" title="Update">
+                    <span class="text-gray-100">Edit Password</span>                
+                </button>
+        </td>
         </table>
     </div>
-    <button class="btn bg-warning btn-sm button-update mt-4" data-id="" data-jumlah="" data-tanggal="" title="Update">
-        <span class="text-gray-100">Edit Password</span>                
-    </button>
   </div>
 </div>

@@ -32,7 +32,8 @@
   <i class="fas fa-angle-up"></i>
 </a>
 
-<%- include('../../partials/script.ejs') %>
+<%- include('edit_modal.ejs') %> <%- include('../../partials/logout_modal.ejs')
+%> <%- include('../../partials/script.ejs') %>
 
 <script>
   $("#dataTable").on("click", ".button-update", function () {
@@ -58,7 +59,7 @@
       console.log("Editing telur data:", { id, jumlah, tanggal });
 
       // Set form action with the correct ID
-      $("#editForm").attr("action", `/admin/telur/update/${id}`);
+      $("#editForm").attr("action", `/admin/pakan/update/${id}`);
 
       // Populate form fields
       $("#editId").val(id);
