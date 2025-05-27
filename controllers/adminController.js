@@ -1,10 +1,20 @@
 const axios = require("axios");
 
 module.exports = {
+  viewSignIn: function (req, res) {
+    try {
+      res.render("index", {
+        title: "Dafa Farm | Login",
+      });
+      res.redirect("admin/dashboard");
+    } catch (error) {
+      res.redirect("admin/signin");
+    }
+  },
   //#region Dashboard Function
   viewDashboard: function (req, res) {
     res.render("admin/dashboard/view_dashboard", {
-      title: "Dashboard",
+      title: "Dafa Farm | Dashboard",
       //   user: req.user,
       //   message: req.flash("message"),
     });
@@ -15,7 +25,9 @@ module.exports = {
   viewTelur: async function (req, res) {
     try {
       // Get telur data from API
-      const response = await axios.get('http://localhost:3001/api/produksi/telur');
+      const response = await axios.get(
+        "http://localhost:3001/api/produksi/telur"
+      );
 
       // Extract the array from the response
       let telurArray;
@@ -23,13 +35,14 @@ module.exports = {
       if (Array.isArray(response.data)) {
         // If response.data is already an array
         telurArray = response.data;
-      } else if (typeof response.data === 'object') {
+      } else if (typeof response.data === "object") {
         // If response.data is an object, look for common array properties
         // Log all keys to help find where the array might be
-        console.log('Response keys:', Object.keys(response.data));
+        console.log("Response keys:", Object.keys(response.data));
 
         // Check common array properties
-        telurArray = response.data.data ||
+        telurArray =
+          response.data.data ||
           response.data.telur ||
           response.data.results ||
           response.data.items ||
@@ -40,7 +53,7 @@ module.exports = {
           for (const key in response.data) {
             if (Array.isArray(response.data[key])) {
               telurArray = response.data[key];
-              console.log('Found array in property:', key);
+              console.log("Found array in property:", key);
               break;
             }
           }
@@ -51,13 +64,13 @@ module.exports = {
       telurArray = telurArray || [];
 
       res.render("admin/telur/view_telur", {
-        title: "Telur",
+        title: "Dafa Farm | Telur",
         telur: telurArray,
       });
     } catch (error) {
-      console.error('Error fetching telur data:', error);
+      console.error("Error fetching telur data:", error);
       res.render("admin/telur/view_telur", {
-        title: "Telur",
+        title: "Dafa Farm | Telur",
         error: "Failed to load data",
       });
     }
@@ -71,18 +84,21 @@ module.exports = {
 
       // Prepare the data in the required format
       const telurData = {
-        "Tanggal": tanggal,
-        "Telur_kg": jumlah
+        Tanggal: tanggal,
+        Telur_kg: jumlah,
       };
 
       // Send POST request to API
-      const response = await axios.post('http://localhost:3001/api/produksi/telur/add', telurData);
+      const response = await axios.post(
+        "http://localhost:3001/api/produksi/telur/add",
+        telurData
+      );
 
       console.log("API response:", response.data);
 
       // Redirect back to telur page
       // Set success message (if using flash messages)
-      req.flash('success', 'Telur data added successfully');
+      req.flash("success", "Telur data added successfully");
       res.redirect("/admin/telur");
     } catch (error) {
       console.error("Error adding telur data:", error.message);
@@ -95,7 +111,9 @@ module.exports = {
   getTelurById: async (req, res) => {
     try {
       const id = req.params.id;
-      const response = await axios.get(`http://localhost:3001/api/produksi/telur/find/${id}`);
+      const response = await axios.get(
+        `http://localhost:3001/api/produksi/telur/find/${id}`
+      );
 
       res.json(response.data);
     } catch (error) {
@@ -115,18 +133,21 @@ module.exports = {
 
       // Prepare the data in the required format
       const telurData = {
-        "Tanggal": tanggal,
-        "Telur_kg": jumlah
+        Tanggal: tanggal,
+        Telur_kg: jumlah,
       };
 
       // Send PUT request to API
-      const response = await axios.put(`http://localhost:3001/api/produksi/telur/edit/${id}`, telurData);
+      const response = await axios.put(
+        `http://localhost:3001/api/produksi/telur/edit/${id}`,
+        telurData
+      );
 
       console.log("API response:", response.data);
 
       // Redirect back to telur page
       // Set success message (if using flash messages)
-      req.flash('success', 'Telur data updated successfully');
+      req.flash("success", "Telur data updated successfully");
       res.redirect("/admin/telur");
     } catch (error) {
       console.error("Error updating telur data:", error.message);
@@ -139,7 +160,7 @@ module.exports = {
   viewPakan: async function (req, res) {
     try {
       // Get telur data from API
-      const response = await axios.get('http://localhost:3001/api/pakan');
+      const response = await axios.get("http://localhost:3001/api/pakan");
 
       // Extract the array from the response
       let pakanArray;
@@ -147,13 +168,14 @@ module.exports = {
       if (Array.isArray(response.data)) {
         // If response.data is already an array
         pakanArray = response.data;
-      } else if (typeof response.data === 'object') {
+      } else if (typeof response.data === "object") {
         // If response.data is an object, look for common array properties
         // Log all keys to help find where the array might be
-        console.log('Response keys:', Object.keys(response.data));
+        console.log("Response keys:", Object.keys(response.data));
 
         // Check common array properties
-        pakanArray = response.data.data ||
+        pakanArray =
+          response.data.data ||
           response.data.pakan ||
           response.data.results ||
           response.data.items ||
@@ -164,7 +186,7 @@ module.exports = {
           for (const key in response.data) {
             if (Array.isArray(response.data[key])) {
               pakanArray = response.data[key];
-              console.log('Found array in property:', key);
+              console.log("Found array in property:", key);
               break;
             }
           }
@@ -175,13 +197,13 @@ module.exports = {
       pakanArray = pakanArray || [];
 
       res.render("admin/pakan/view_pakan", {
-        title: "pakan",
+        title: "Dafa Farm | Pakan",
         pakan: pakanArray,
       });
     } catch (error) {
-      console.error('Error fetching pakan data:', error);
+      console.error("Error fetching pakan data:", error);
       res.render("admin/pakan/view_pakan", {
-        title: "pakan",
+        title: "Dafa Farm | Pakan",
         error: "Failed to load data",
       });
     }
@@ -195,18 +217,21 @@ module.exports = {
 
       // Prepare the data in the required format
       const pakanData = {
-        "Tanggal": tanggal,
-        "Pakan_kg": jumlah
+        Tanggal: tanggal,
+        Pakan_kg: jumlah,
       };
 
       // Send POST request to API
-      const response = await axios.post('http://localhost:3001/api/pakan/add', pakanData);
+      const response = await axios.post(
+        "http://localhost:3001/api/pakan/add",
+        pakanData
+      );
 
       console.log("API response:", response.data);
 
       // Redirect back to pakan page
       // Set success message (if using flash messages)
-      req.flash('success', 'pakan data added successfully');
+      req.flash("success", "pakan data added successfully");
       res.redirect("/admin/pakan");
     } catch (error) {
       console.error("Error adding pakan data:", error.message);
@@ -226,18 +251,21 @@ module.exports = {
 
       // Prepare the data in the required format
       const pakanData = {
-        "Tanggal": tanggal,
-        "Pakan_kg": jumlah
+        Tanggal: tanggal,
+        Pakan_kg: jumlah,
       };
 
       // Send PUT request to API
-      const response = await axios.put(`http://localhost:3001/api/pakan/update/${id}`, pakanData);
+      const response = await axios.put(
+        `http://localhost:3001/api/pakan/update/${id}`,
+        pakanData
+      );
 
       console.log("API response:", response.data);
 
       // Redirect back to pakan page
       // Set success message (if using flash messages)
-      req.flash('success', 'pakan data updated successfully');
+      req.flash("success", "pakan data updated successfully");
       res.redirect("/admin/pakan");
     } catch (error) {
       console.error("Error updating pakan data:", error.message);
@@ -248,7 +276,9 @@ module.exports = {
   getPakanById: async (req, res) => {
     try {
       const id = req.params.id;
-      const response = await axios.get(`http://localhost:3001/api/produksi/pakan/find/${id}`);
+      const response = await axios.get(
+        `http://localhost:3001/api/produksi/pakan/find/${id}`
+      );
 
       res.json(response.data);
     } catch (error) {
@@ -259,7 +289,7 @@ module.exports = {
 
   viewPendapatan: function (req, res) {
     res.render("admin/pendapatan/view_pendapatan", {
-      title: "Pendapatan",
+      title: "Dafa Farm | Pendapatan",
       //   user: req.user,
       //   message: req.flash("message"),
     });
@@ -270,9 +300,9 @@ module.exports = {
   viewMoveAvg: async function (req, res) {
     try {
       res.render("admin/moveavg/view_moveavg", {
-        title: "Moving Average Forecast",
+        title: "Dafa Farm | Moving Average Forecast",
         window: req.query.window || 4,
-        periods: req.query.periods || 6
+        periods: req.query.periods || 6,
       });
     } catch (error) {
       console.error("Error rendering moving average page:", error);
@@ -281,7 +311,7 @@ module.exports = {
   },
 
   // API endpoint to get forecast data
- getForecasts: async function (req, res) {
+  getForecasts: async function (req, res) {
     try {
       // Get the window and periods parameters, default to 4 and 6 if not provided
       const window = req.query.window || 4; // Mengambil dari query string
@@ -300,16 +330,21 @@ module.exports = {
       // Return the combined forecast data
       res.json({
         telur: telurResponse.data,
-        pakan: pakanResponse.data // Anda bisa juga hanya mengirim data telur jika hanya itu yang dibutuhkan
+        pakan: pakanResponse.data, // Anda bisa juga hanya mengirim data telur jika hanya itu yang dibutuhkan
       });
-      console.log("Forecast data fetched successfully for window:", window, "periods:", periods);
+      console.log(
+        "Forecast data fetched successfully for window:",
+        window,
+        "periods:",
+        periods
+      );
     } catch (error) {
       console.error("Error fetching forecast data:", error.message);
       res.status(500).json({
         error: "Failed to fetch forecast data",
-        message: error.message
+        message: error.message,
       });
     }
-  }
+  },
   //#endregion Moving Average Function
 };
