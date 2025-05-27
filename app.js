@@ -3,7 +3,7 @@ var express = require("express");
 var path = require("path");
 var cookieParser = require("cookie-parser");
 var logger = require("morgan");
-
+const dateHelper = require("./helper/FormatDate");
 var indexRouter = require("./routes/index");
 var usersRouter = require("./routes/users");
 //router for admin
@@ -11,6 +11,10 @@ const adminRouter = require("./routes/admin");
 
 var app = express();
 
+app.locals.dateHelper = dateHelper.formatDate;  // Keep this as dateHelper since you're using it in templates
+app.locals.dateHelperForInput = dateHelper.formatDateForInput;
+app.locals.formatDateLong = dateHelper.formatDateLong; // Add this new format
+app.locals.formatDateIndonesian = dateHelper.formatDateIndonesian; // Add this for Indonesian format
 // view engine setup
 app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "ejs");
@@ -27,6 +31,7 @@ app.use(
 );
 
 app.use("/", indexRouter);
+
 app.use("/users", usersRouter);
 // use admin router
 app.use("/admin", adminRouter);

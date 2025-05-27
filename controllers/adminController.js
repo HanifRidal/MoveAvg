@@ -1,4 +1,5 @@
 const axios = require("axios");
+const { ensureAuthenticated } = require("../middleware/TokenServices");
 
 module.exports = {
   viewSignIn: function (req, res) {
@@ -24,9 +25,19 @@ module.exports = {
   //#region Telur Fucntion
   viewTelur: async function (req, res) {
     try {
+
+      const userAuthToken = req.cookies.authToken;
+      const axiosConfig = {};
+
+      if (userAuthToken) {
+        axiosConfig.headers = {
+          'Cookie': `authToken=${userAuthToken}` // Meneruskan cookie ke backend API
+        };
+      }
+
       // Get telur data from API
       const response = await axios.get(
-        "http://localhost:3001/api/produksi/telur"
+        "http://localhost:3001/api/produksi/telur", axiosConfig
       );
 
       // Extract the array from the response
@@ -159,8 +170,16 @@ module.exports = {
   //#region Pakan Function
   viewPakan: async function (req, res) {
     try {
+      const userAuthToken = req.cookies.authToken;
+      const axiosConfig = {};
+
+      if (userAuthToken) {
+        axiosConfig.headers = {
+          'Cookie': `authToken=${userAuthToken}` // Meneruskan cookie ke backend API
+        };
+      }
       // Get telur data from API
-      const response = await axios.get("http://localhost:3001/api/pakan");
+      const response = await axios.get("http://localhost:3001/api/pakan", axiosConfig);
 
       // Extract the array from the response
       let pakanArray;
@@ -287,12 +306,55 @@ module.exports = {
     }
   },
 
-  viewPendapatan: function (req, res) {
-    res.render("admin/pendapatan/view_pendapatan", {
-      title: "Dafa Farm | Pendapatan",
-      //   user: req.user,
-      //   message: req.flash("message"),
-    });
+  viewPendapatan:async function (req, res) {
+    try { 
+      // Get telur data from API
+      const response = await axios.get('http://localhost:3001/api/pendapatan');
+
+      // Extract the array from the response
+      let pendapatanArray;
+
+      if (Array.isArray(response.data)) {
+        // If response.data is already an array
+        pendapatanArray = response.data;
+      } else if (typeof response.data === 'object') {
+        // If response.data is an object, look for common array properties
+        // Log all keys to help find where the array might be
+        console.log('Response keys:', Object.keys(response.data));
+
+        // Check common array properties
+        pendapatanArray = response.data.data ||
+          response.data.pendapatan ||
+          response.data.results ||
+          response.data.items ||
+          response.data.records;
+
+        // If still not found, check if any property is an array
+        if (!pendapatanArray) {
+          for (const key in response.data) {
+            if (Array.isArray(response.data[key])) {
+              pendapatanArray = response.data[key];
+              console.log('Found array in property:', key);
+              break;
+            }
+          }
+        }
+      }
+
+      // Default to empty array if nothing found
+      pendapatanArray = pendapatanArray || [];
+
+      res.render("admin/pendapatan/view_pendapatan", {
+        title: "pendapatan",
+        pendapatan: pendapatanArray,
+      });
+    } catch (error) {
+      console.error('Error fetching pendapatan data:', error);
+      res.render("admin/pendapatan/view_pendapatan", {
+        title: "pendapatan",
+        error: "Failed to load data",
+      });
+    }
   },
   //#endregion Pakan Function
 
@@ -301,8 +363,8 @@ module.exports = {
     try {
       res.render("admin/moveavg/view_moveavg", {
         title: "Dafa Farm | Moving Average Forecast",
-        window: req.query.window || 4,
-        periods: req.query.periods || 6,
+        window: req.query.window || 2,
+        periods: req.query.periods || 1,
       });
     } catch (error) {
       console.error("Error rendering moving average page:", error);
@@ -314,8 +376,8 @@ module.exports = {
   getForecasts: async function (req, res) {
     try {
       // Get the window and periods parameters, default to 4 and 6 if not provided
-      const window = req.query.window || 4; // Mengambil dari query string
-      const periods = req.query.periods || 4; // Mengambil dari query string
+      const window = req.query.window || 2; // Mengambil dari query string
+      const periods = req.query.periods || 1; // Mengambil dari query string
 
       // Fetch telur forecast data
       const telurResponse = await axios.get(

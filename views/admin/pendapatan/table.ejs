@@ -5,46 +5,111 @@
   </div>
   <div class="card-body">
     <div class="table-responsive">
-      <table
-        class="table table-bordered"
-        id="dataTable"
-        width="100%"
-        cellspacing="0"
-      >
+      <% if (locals.error) { %>
+        <div class="alert alert-danger">
+          <%= error %>
+        </div>
+      <% } %>
+      
+      <% if (locals.pendapatan && Array.isArray(pendapatan) && pendapatan.length > 0) {%> 
+      <table class="table table-borderless" id="dataTable" width="100%" cellspacing="0">
         <thead>
-          <tr>
-            <th>No</th>
-            <th>Create At</th>
-            <th>Per Bulan</th>
-            <th>Per Quartal</th>
-            <th>Action</th>
+          <tr class="bg-gray-800 text-white">
+            <th class="text-center" style="width: 5%">No</th>
+            <th class="text-right" style="width: 40%">Pendapatan/Bulan (Rp)</th>
+            <th class="text-right" style="width: 40%">Pendapatan/Quartal 4 Bulan (Rp)</th>
+            <th class="text-center" style="width: 15%">Action</th>
           </tr>
         </thead>
         <tbody>
-          <tr>
-            <td>1</td>
-            <td>bla</td>
-            <td>bla</td>
-            <td>bla</td>
-            <td>
-              <a
-                class="btn bg-warning btn-circle btn-sm"
-                href="/admin/telur/update/id"
-                title="Update"
-              >
-                <i class="fas fa-edit text-gray-100"></i>
-              </a>
-              <a
-                class="btn bg-danger btn-circle btn-sm"
-                href="/admin/telur/delete/id"
-                title="Delete"
-              >
-                <i class="fas fa-trash text-gray-100"></i>
-              </a>
-            </td>
-          </tr>
+          <% 
+            // Group by quartal
+            const quartalData = {};
+            pendapatan.forEach(item => {
+              const quartalKey = item.pendapatan_quartal || 0;
+              if (!quartalData[quartalKey]) {
+                quartalData[quartalKey] = [];
+              }
+              quartalData[quartalKey].push(item);
+            });
+            
+            let rowIndex = 0;
+            
+            // Sort quartal keys by value in descending order for newest first
+            const sortedQuartalKeys = Object.keys(quartalData).sort((a, b) => b - a);
+          %>
+          
+          <% sortedQuartalKeys.forEach(quartalKey => { %>
+            <% const items = quartalData[quartalKey]; %>
+            
+            <% items.forEach((item, index) => { %>
+              <tr class="<%= index % 2 === 0 ? 'bg-white' : 'bg-light' %>">
+                <td class="text-center align-middle"><%= ++rowIndex %></td>
+                <td class="text-right align-middle">
+                  Rp <%= item.pendapatan_bulan.toLocaleString('id-ID', {minimumFractionDigits: 0, maximumFractionDigits: 0}).replace(/,/g, '.') %>
+                </td>
+                
+                <% if (index === 0) { %>
+                  <td rowspan="<%= items.length %>" class="text-right align-middle">
+                    Rp <%= parseFloat(quartalKey).toLocaleString('id-ID', {minimumFractionDigits: 0, maximumFractionDigits: 0}).replace(/,/g, '.') %>
+                  </td>
+                <% } %>
+                
+                <td class="text-center align-middle">
+                  <a href="/admin/pendapatan/update/<%= item.id %>" class="btn btn-sm btn-warning mx-1">
+                    <i class="fas fa-edit"></i>
+                  </a>
+                  <a href="/admin/pendapatan/delete/<%= item.id %>" class="btn btn-sm btn-danger mx-1">
+                    <i class="fas fa-trash"></i>
+                  </a>
+                </td>
+              </tr>
+            <% }); %>
+            
+            <% if (items.length > 0) { %>
+              <!-- Add a small separator between quartal groups -->
+              <tr class="bg-white">
+                <td colspan="4" class="py-2"></td>
+              </tr>
+            <% } %>
+          <% }); %>
         </tbody>
       </table>
+      <% } else { %>
+        <div class="alert alert-info">No data available</div>
+      <% } %>
     </div>
   </div>
 </div>
+
+<!-- Optional: Add DataTables styling without the default sorting -->
+<% if (locals.pendapatan && Array.isArray(pendapatan) && pendapatan.length > 0) { %>
+<script>
+  $(document).ready(function() {
+    $('#dataTable').DataTable({
+      "ordering": false,
+      "paging": true,
+      "pageLength": 10,
+      "info": true,
+      "searching": true,
+      "language": {
+        "search": "Cari:",
+        "lengthMenu": "Tampilkan _MENU_ data per halaman",
+        "info": "Menampilkan _START_ sampai _END_ dari _TOTAL_ data",
+        "paginate": {
+          "first": "Pertama",
+          "last": "Terakhir",
+          "next": "Selanjutnya",
+          "previous": "Sebelumnya"
+        }
+      },
+      "dom": '<"top"lf>rt<"bottom"ip><"clear">',
+      "drawCallback": function() {
+        // Add additional custom styling after table is drawn
+        $('.dataTables_wrapper .dataTables_filter input').addClass('form-control-sm');
+        $('.dataTables_wrapper .dataTables_length select').addClass('form-control-sm');
+      }
+    });
+  });
+</script>
+<% } %>

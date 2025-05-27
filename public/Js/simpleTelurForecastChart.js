@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function () {
-    const canvasElement = document.getElementById('telurForecastChart'); // ID bisa diganti jika mau
+    const canvasElement = document.getElementById('telurForecastChart');
     const loaderElement = document.getElementById('chartLoader');
     const errorElement = document.getElementById('chartError');
 
@@ -9,10 +9,19 @@ document.addEventListener('DOMContentLoaded', function () {
         return;
     }
 
-    let combinedChartInstance = null; // Mengganti nama variabel instance chart
-
+    let chartInstance = null;
     let currentWindow = 4;
-    let currentPeriods = 4;
+
+    // Enhanced color scheme
+    const CHART_COLORS = {
+        telurActual: '#4e73df',
+        telurForecast: '#e83e8c', 
+        pakanActual: '#2ECC71',
+        pakanForecast: '#F39C12',
+        background: '#f8f9fc',
+        gridLines: '#ededed',
+        text: '#5a5c69'
+    };
 
     function showLoading(isLoading) {
         if (loaderElement) loaderElement.style.display = isLoading ? 'block' : 'none';
@@ -29,238 +38,400 @@ document.addEventListener('DOMContentLoaded', function () {
         canvasElement.style.opacity = 0.5;
     }
 
-    const formatChartLabel = (item) => `${item.bulan}/${item.tahun}`;
-    const monthNames = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Ags", "Sep", "Okt", "Nov", "Des"];
-    const formatDisplayLabel = (label) => {
-        const [month, year] = label.split('/');
-        return `${monthNames[parseInt(month) - 1]} ${year}`;
-    };
+    // Format numbers with commas
+    function formatNumber(num) {
+        return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
+
+    // Helper function to process data from API
+    function processData(data, field) {
+        const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+        
+        // Sort actual data by date
+        const actualData = (data.actual || []).sort((a, b) => {
+            if (a.tahun !== b.tahun) return a.tahun - b.tahun;
+            return a.bulan - b.bulan;
+        });
+        
+        // Sort forecast data by date
+        const forecastData = (data.forecast || []).sort((a, b) => {
+            if (a.tahun !== b.tahun) return a.tahun - b.tahun;
+            return a.bulan - b.bulan;
+        });
+
+        // Combine all data points for a complete timeline
+        const combinedDataPoints = [];
+        
+        // Process actual data
+        actualData.forEach(item => {
+            combinedDataPoints.push({
+                label: `${monthNames[item.bulan-1]} ${item.tahun}`,
+                month: item.bulan,
+                year: item.tahun,
+                actual: item[field],
+                forecast: null
+            });
+        });
+        
+        // Process forecast data - update existing or add new
+        forecastData.forEach(item => {
+            // Check if this month already exists in combined data
+            const existingIndex = combinedDataPoints.findIndex(
+                d => d.month === item.bulan && d.year === item.tahun
+            );
+            
+            if (existingIndex >= 0) {
+                // Update forecast value for this month/year
+                combinedDataPoints[existingIndex].forecast = item[field];
+            } else {
+                // Add as new data point
+                combinedDataPoints.push({
+                    label: `${monthNames[item.bulan-1]} ${item.tahun}`,
+                    month: item.bulan,
+                    year: item.tahun,
+                    actual: null,
+                    forecast: item[field]
+                });
+            }
+        });
+        
+        // Sort combined data by date
+        combinedDataPoints.sort((a, b) => {
+            if (a.year !== b.year) return a.year - b.year;
+            return a.month - b.month;
+        });
+
+        return combinedDataPoints;
+    }
 
     async function loadAndRenderChart(windowSize, periodsToForecast) {
         showLoading(true);
         try {
-            const adminApiEndpoint = `/admin/forecasts?window=${windowSize}&periods=${periodsToForecast}`;
-            const response = await fetch(adminApiEndpoint);
-
-            if (!response.ok) {
-                throw new Error(`Gagal mengambil data: Status ${response.status}`);
-            }
-            const apiData = await response.json();
-
-            console.log("API Data:", JSON.stringify(apiData, null, 2));
-
-            // Ekstrak data Telur
-            const telurData = apiData.telur && apiData.telur.data ? apiData.telur.data : { actual: [], forecast: [] };
-            const telurActuals = (telurData.actual || []).sort((a,b) => new Date(a.tahun, a.bulan -1) - new Date(b.tahun, b.bulan -1));
-            const telurForecasts = (telurData.forecast || []).sort((a,b) => new Date(a.tahun, a.bulan -1) - new Date(b.tahun, b.bulan -1));
-
-            // Ekstrak data Pakan
-            const pakanData = apiData.pakan && apiData.pakan.data ? apiData.pakan.data : { actual: [], forecast: [] };
-            // Pastikan sorting menggunakan atribut yang benar jika tanggalnya berbeda
-            const pakanActuals = (pakanData.actual || []).sort((a,b) => new Date(a.tahun, a.bulan -1) - new Date(b.tahun, b.bulan -1));
-            const pakanForecasts = (pakanData.forecast || []).sort((a,b) => new Date(a.tahun, a.bulan -1) - new Date(b.tahun, b.bulan -1));
-
-            if (!apiData.telur && !apiData.pakan) {
-                throw new Error('Data prediksi telur dan pakan tidak ditemukan.');
-            }
-
-            // Siapkan label untuk sumbu-X (Bulan/Tahun) - gabungkan dari semua data
-            const allLabelsSet = new Set([
-                ...telurActuals.map(formatChartLabel),
-                ...telurForecasts.map(formatChartLabel),
-                ...pakanActuals.map(formatChartLabel),
-                ...pakanForecasts.map(formatChartLabel)
+            // Fetch both telur and pakan data in parallel
+            const [telurResponse, pakanResponse] = await Promise.all([
+                fetch(`http://localhost:3001/api/v1/forecast/telur/total_telur_kg/${windowSize}`),
+                fetch(`http://localhost:3001/api/v1/forecast/pakan/total_Pakan_kg/${windowSize}`)
             ]);
-            const sortedLabels = Array.from(allLabelsSet).sort((a, b) => {
-                const [monthA, yearA] = a.split('/').map(Number);
-                const [monthB, yearB] = b.split('/').map(Number);
-                if (yearA !== yearB) return yearA - yearB;
-                return monthA - monthB;
-            });
-            const displayLabels = sortedLabels.map(formatDisplayLabel);
 
-            // --- Proses Data Telur ---
-            const telurActualChartData = sortedLabels.map(label => {
-                const found = telurActuals.find(item => formatChartLabel(item) === label);
-                return found ? found.total_telur_kg : null;
-            });
-            const telurForecastChartData = new Array(sortedLabels.length).fill(null);
-            let lastTelurActualIndex = telurActualChartData.map((val, idx) => val !== null ? idx : -1).filter(idx => idx !== -1).pop() ?? -1;
-
-            if (lastTelurActualIndex !== -1 && telurActuals.length > 0) {
-                telurForecastChartData[lastTelurActualIndex] = telurActualChartData[lastTelurActualIndex];
+            if (!telurResponse.ok || !pakanResponse.ok) {
+                throw new Error(`Gagal mengambil data: Status Telur: ${telurResponse.status}, Status Pakan: ${pakanResponse.status}`);
             }
-            telurForecasts.forEach(item => {
-                const index = sortedLabels.indexOf(formatChartLabel(item));
-                if (index !== -1) telurForecastChartData[index] = item.total_telur_kg;
+
+            const telurApiData = await telurResponse.json();
+            const pakanApiData = await pakanResponse.json();
+
+            // Process both datasets
+            const telurDataPoints = processData(telurApiData.data, 'total_telur_kg');
+            const pakanDataPoints = processData(pakanApiData.data, 'total_Pakan_kg');
+
+            // Create a unified timeline from both datasets
+            const allMonthsYears = new Set();
+            [...telurDataPoints, ...pakanDataPoints].forEach(item => {
+                allMonthsYears.add(`${item.month}-${item.year}`);
             });
 
-            // --- Proses Data Pakan ---
-            const pakanActualChartData = sortedLabels.map(label => {
-                const found = pakanActuals.find(item => formatChartLabel(item) === label);
-                // GUNAKAN total_Pakan_kg (DENGAN 'P' BESAR) SESUAI API RESPONSE
-                return found && typeof found.total_Pakan_kg !== 'undefined' ? found.total_Pakan_kg : null;
-            });
+            // Sort the unified timeline
+            const sortedMonthsYears = Array.from(allMonthsYears)
+                .map(key => {
+                    const [month, year] = key.split('-').map(Number);
+                    return { month, year };
+                })
+                .sort((a, b) => {
+                    if (a.year !== b.year) return a.year - b.year;
+                    return a.month - b.month;
+                });
 
-            const pakanForecastChartData = new Array(sortedLabels.length).fill(null);
-            let lastPakanActualIndex = pakanActualChartData.map((val, idx) => val !== null ? idx : -1).filter(idx => idx !== -1).pop() ?? -1;
-            
-            if (lastPakanActualIndex !== -1 && pakanActuals.length > 0) {
-                 // GUNAKAN total_Pakan_kg (DENGAN 'P' BESAR)
-                pakanForecastChartData[lastPakanActualIndex] = pakanActualChartData[lastPakanActualIndex];
-            }
-            pakanForecasts.forEach(item => {
-                const index = sortedLabels.indexOf(formatChartLabel(item));
-                // GUNAKAN total_Pakan_kg (DENGAN 'P' BESAR)
-                if (index !== -1 && typeof item.total_Pakan_kg !== 'undefined') {
-                     pakanForecastChartData[index] = item.total_Pakan_kg;
+            // Convert to proper label format
+            const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+            const xLabels = sortedMonthsYears.map(item => `${monthNames[item.month-1]} ${item.year}`);
+
+            // Create datasets for chart
+            const telurActualData = new Array(xLabels.length).fill(null);
+            const telurForecastData = new Array(xLabels.length).fill(null);
+            const pakanActualData = new Array(xLabels.length).fill(null);
+            const pakanForecastData = new Array(xLabels.length).fill(null);
+
+            // Fill in the telur data
+            telurDataPoints.forEach(point => {
+                const index = sortedMonthsYears.findIndex(item => 
+                    item.month === point.month && item.year === point.year);
+                if (index !== -1) {
+                    telurActualData[index] = point.actual;
+                    telurForecastData[index] = point.forecast;
                 }
             });
 
+            // Fill in the pakan data
+            pakanDataPoints.forEach(point => {
+                const index = sortedMonthsYears.findIndex(item => 
+                    item.month === point.month && item.year === point.year);
+                if (index !== -1) {
+                    pakanActualData[index] = point.actual;
+                    pakanForecastData[index] = point.forecast;
+                }
+            });
 
-            if (combinedChartInstance) {
-                combinedChartInstance.destroy();
+            if (chartInstance) {
+                chartInstance.destroy();
             }
 
-
-
-
+            // Create gradient fills for datasets
             const ctx = canvasElement.getContext('2d');
-            combinedChartInstance = new Chart(ctx, {
+            const telurActualGradient = ctx.createLinearGradient(0, 0, 0, 400);
+            telurActualGradient.addColorStop(0, 'rgba(78, 115, 223, 0.2)');
+            telurActualGradient.addColorStop(1, 'rgba(78, 115, 223, 0)');
+            
+            const telurForecastGradient = ctx.createLinearGradient(0, 0, 0, 400);
+            telurForecastGradient.addColorStop(0, 'rgba(232, 62, 140, 0.15)');
+            telurForecastGradient.addColorStop(1, 'rgba(232, 62, 140, 0)');
+
+            const pakanActualGradient = ctx.createLinearGradient(0, 0, 0, 400);
+            pakanActualGradient.addColorStop(0, 'rgba(46, 204, 113, 0.15)');
+            pakanActualGradient.addColorStop(1, 'rgba(46, 204, 113, 0)');
+            
+            const pakanForecastGradient = ctx.createLinearGradient(0, 0, 0, 400);
+            pakanForecastGradient.addColorStop(0, 'rgba(243, 156, 18, 0.15)');
+            pakanForecastGradient.addColorStop(1, 'rgba(243, 156, 18, 0)');
+
+            // Calculate max Y-axis value for scaling
+            const maxValue = Math.max(
+                ...telurActualData.filter(val => val !== null),
+                ...telurForecastData.filter(val => val !== null),
+                ...pakanActualData.filter(val => val !== null),
+                ...pakanForecastData.filter(val => val !== null)
+            ) * 1.1;
+
+            chartInstance = new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: displayLabels,
+                    labels: xLabels,
                     datasets: [
-                        // Dataset Telur
+                        // Telur Actual
                         {
-                            label: 'Telur Aktual (Kg)',
-                            data: telurActualChartData,
-                            borderColor: 'rgba(78, 115, 223, 1)', // Biru
-                            backgroundColor: 'rgba(78, 115, 223, 0.1)',
-                            tension: 0.1,
+                            label: 'Telur Aktual',
+                            data: telurActualData,
+                            borderColor: CHART_COLORS.telurActual,
+                            backgroundColor: telurActualGradient,
+                            borderWidth: 3,
+                            tension: 0.3,
+                            pointRadius: 6,
+                            pointBackgroundColor: CHART_COLORS.telurActual,
+                            pointBorderColor: '#ffffff',
+                            pointBorderWidth: 2,
+                            pointHoverRadius: 8,
+                            pointStyle: 'circle',
                             fill: true,
-                            pointRadius: 3,
-                            pointBackgroundColor: 'rgba(78, 115, 223, 1)',
-                            yAxisID: 'yTelur', // Menambahkan ID untuk sumbu Y Telur
+                            spanGaps: false
                         },
+                        // Telur Forecast
                         {
-                            label: 'Prediksi Telur (Kg)',
-                            data: telurForecastChartData,
-                            borderColor: 'rgba(231, 76, 60, 1)', // Merah
-                            backgroundColor: 'rgba(231, 76, 60, 0.1)',
-                            tension: 0.1,
-                            fill: true,
-                            borderDash: [5, 5],
-                            pointRadius: 3,
+                            label: 'Telur Prediksi',
+                            data: telurForecastData,
+                            borderColor: CHART_COLORS.telurForecast,
+                            backgroundColor: telurForecastGradient,
+                            borderWidth: 3,
+                            borderDash: [6, 4],
+                            tension: 0.3,
+                            pointRadius: 6,
+                            pointBackgroundColor: CHART_COLORS.telurForecast,
+                            pointBorderColor: '#ffffff',
+                            pointBorderWidth: 2,
+                            pointHoverRadius: 8,
                             pointStyle: 'rectRot',
-                            pointBackgroundColor: 'rgba(231, 76, 60, 1)',
-                            yAxisID: 'yTelur', // Menambahkan ID untuk sumbu Y Telur
-                        },
-                        // Dataset Pakan
-                        {
-                            label: 'Pakan Aktual (Kg)',
-                            data: pakanActualChartData,
-                            borderColor: 'rgba(46, 204, 113, 1)', // Hijau
-                            backgroundColor: 'rgba(46, 204, 113, 0.1)',
-                            tension: 0.1,
                             fill: true,
-                            pointRadius: 3,
-                            pointBackgroundColor: 'rgba(46, 204, 113, 1)',
-                            yAxisID: 'yPakan', // Menambahkan ID untuk sumbu Y Pakan
+                            spanGaps: false
                         },
+                        // Pakan Actual
                         {
-                            label: 'Prediksi Pakan (Kg)',
-                            data: pakanForecastChartData,
-                            borderColor: 'rgba(243, 156, 18, 1)', // Oranye
-                            backgroundColor: 'rgba(243, 156, 18, 0.1)',
-                            tension: 0.1,
-                            fill: true,
-                            borderDash: [5, 5],
-                            pointRadius: 3,
+                            label: 'Pakan Aktual',
+                            data: pakanActualData,
+                            borderColor: CHART_COLORS.pakanActual,
+                            backgroundColor: pakanActualGradient,
+                            borderWidth: 3,
+                            tension: 0.3,
+                            pointRadius: 6,
+                            pointBackgroundColor: CHART_COLORS.pakanActual,
+                            pointBorderColor: '#ffffff',
+                            pointBorderWidth: 2,
+                            pointHoverRadius: 8,
                             pointStyle: 'triangle',
-                            pointBackgroundColor: 'rgba(243, 156, 18, 1)',
-                            yAxisID: 'yPakan', // Menambahkan ID untuk sumbu Y Pakan
+                            fill: true,
+                            spanGaps: false
+                        },
+                        // Pakan Forecast
+                        {
+                            label: 'Pakan Prediksi',
+                            data: pakanForecastData,
+                            borderColor: CHART_COLORS.pakanForecast,
+                            backgroundColor: pakanForecastGradient,
+                            borderWidth: 3,
+                            borderDash: [6, 4],
+                            tension: 0.3,
+                            pointRadius: 6,
+                            pointBackgroundColor: CHART_COLORS.pakanForecast,
+                            pointBorderColor: '#ffffff',
+                            pointBorderWidth: 2,
+                            pointHoverRadius: 8,
+                            pointStyle: 'rect',
+                            fill: true,
+                            spanGaps: false
                         }
                     ]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    aspectRatio: 2,
+                    animation: {
+                        duration: 1500,
+                        easing: 'easeOutQuart'
+                    },
                     interaction: {
                         mode: 'index',
-                        intersect: false,
+                        intersect: false
                     },
                     scales: {
                         x: {
                             title: {
                                 display: true,
-                                text: 'Periode (Bulan/Tahun)'
-                            }
-                        },
-                        yTelur: { // Konfigurasi Sumbu Y untuk Telur
-                            type: 'linear',
-                            display: true,
-                            position: 'left',
-                            beginAtZero: false,
-                            title: {
-                                display: true,
-                                text: 'Total Produksi Telur (Kg)',
-                                color: 'rgba(78, 115, 223, 1)'
+                                text: 'Periode',
+                                color: CHART_COLORS.text,
+                                font: {
+                                    size: 14,
+                                    weight: 'bold'
+                                },
+                                padding: {top: 10}
                             },
                             ticks: {
-                                callback: function(value) { return value.toLocaleString('id-ID'); },
-                                color: 'rgba(78, 115, 223, 1)'
+                                font: {
+                                    size: 11
+                                },
+                                color: CHART_COLORS.text,
+                                maxRotation: 45,
+                                minRotation: 45
                             },
                             grid: {
-                                drawOnChartArea: true // Hanya grid utama dari sumbu ini
+                                display: false,
+                                drawBorder: true
                             }
                         },
-                        yPakan: { // Konfigurasi Sumbu Y untuk Pakan
-                            type: 'linear',
-                            display: true,
-                            position: 'right', // Posisikan di kanan
-                            beginAtZero: false,
+                        y: {
                             title: {
                                 display: true,
-                                text: 'Total Penggunaan Pakan (Kg)',
-                                color: 'rgba(46, 204, 113, 1)'
+                                text: 'Jumlah (kg)',
+                                color: CHART_COLORS.text,
+                                font: {
+                                    size: 14,
+                                    weight: 'bold'
+                                },
+                                padding: {bottom: 10}
                             },
                             ticks: {
-                                callback: function(value) { return value.toLocaleString('id-ID'); },
-                                color: 'rgba(46, 204, 113, 1)'
+                                font: {
+                                    size: 12
+                                },
+                                color: CHART_COLORS.text,
+                                callback: function(value) {
+                                    return formatNumber(value);
+                                }
                             },
                             grid: {
-                                drawOnChartArea: false // Hindari grid ganda
-                            }
+                                color: CHART_COLORS.gridLines,
+                                drawBorder: true,
+                                lineWidth: 0.5
+                            },
+                            beginAtZero: true,
+                            suggestedMax: maxValue
                         }
                     },
                     plugins: {
                         legend: {
-                            position: 'bottom',
+                            position: 'top',
+                            align: 'center',
+                            labels: {
+                                usePointStyle: true,
+                                boxWidth: 10,
+                                padding: 20,
+                                font: {
+                                    size: 12,
+                                    weight: 'bold'
+                                },
+                                color: CHART_COLORS.text
+                            }
                         },
                         title: {
                             display: true,
-                            text: `Prediksi Moving Average (Window: ${windowSize}, Periode: ${periodsToForecast}) - Telur & Pakan`,
-                            font: { size: 16 }
+                            text: 'Prediksi Produksi Telur dan Pakan dengan Moving Average',
+                            font: {
+                                size: 18,
+                                weight: 'bold'
+                            },
+                            color: CHART_COLORS.text,
+                            padding: {
+                                bottom: 30
+                            }
                         },
                         tooltip: {
-                            mode: 'index',
-                            intersect: false,
+                            backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                            titleColor: '#333',
+                            bodyColor: '#333',
+                            borderColor: '#ddd',
+                            borderWidth: 1,
+                            cornerRadius: 8,
+                            padding: 12,
+                            boxPadding: 6,
+                            usePointStyle: true,
                             callbacks: {
+                                title: function(tooltipItems) {
+                                    return tooltipItems[0].label || '';
+                                },
                                 label: function(context) {
                                     let label = context.dataset.label || '';
-                                    if (label) label += ': ';
                                     if (context.parsed.y !== null) {
-                                        label += context.parsed.y.toLocaleString('id-ID') + ' Kg';
+                                        return `${label}: ${formatNumber(context.parsed.y)} kg`;
                                     }
-                                    return label;
+                                    return null;
+                                },
+                                labelPointStyle: function(context) {
+                                    return {
+                                        pointStyle: context.dataset.pointStyle,
+                                        rotation: 0
+                                    };
                                 }
                             }
+                        }
+                    },
+                    elements: {
+                        line: {
+                            tension: 0.3
+                        }
+                    },
+                    layout: {
+                        padding: {
+                            left: 20,
+                            right: 20,
+                            top: 20,
+                            bottom: 20
                         }
                     }
                 }
             });
+            
+            // Update the legend colors in the HTML to match the chart
+            document.querySelectorAll('.mt-2.text-center.small span i.fas.fa-circle').forEach(icon => {
+                if (icon.parentElement.textContent.includes('Telur Aktual')) {
+                    icon.style.color = CHART_COLORS.telurActual;
+                } else if (icon.parentElement.textContent.includes('Telur Prediksi')) {
+                    icon.style.color = CHART_COLORS.telurForecast;
+                } else if (icon.parentElement.textContent.includes('Pakan Aktual')) {
+                    icon.style.color = CHART_COLORS.pakanActual;
+                } else if (icon.parentElement.textContent.includes('Pakan Prediksi')) {
+                    icon.style.color = CHART_COLORS.pakanForecast;
+                }
+            });
+            
             showLoading(false);
+            
         } catch (error) {
             console.error('Gagal memuat atau merender grafik:', error);
             showError(error.message);
@@ -268,16 +439,36 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    loadAndRenderChart(currentWindow, currentPeriods);
+    // Add window resize handler for responsive chart
+    window.addEventListener('resize', function() {
+        if (chartInstance) {
+            chartInstance.resize();
+        }
+    });
+    
+    loadAndRenderChart(currentWindow);
 
+    // Add event listeners for refresh button
     const refreshButton = document.getElementById('refreshForecastChartButton');
     if (refreshButton) {
         refreshButton.addEventListener('click', () => {
             const newWindow = parseInt(document.getElementById('forecastWindowInput').value) || 4;
             const newPeriods = parseInt(document.getElementById('forecastPeriodsInput').value) || 4;
             currentWindow = newWindow;
-            currentPeriods = newPeriods;
-            loadAndRenderChart(currentWindow, currentPeriods);
+            
+            loadAndRenderChart(currentWindow);
+        });
+    }
+    
+    // Add download button functionality
+    const downloadButton = document.getElementById('downloadChartButton');
+    if (downloadButton) {
+        downloadButton.addEventListener('click', () => {
+            // Create temporary link
+            const link = document.createElement('a');
+            link.download = 'prediksi-telur-pakan.png';
+            link.href = canvasElement.toDataURL('image/png');
+            link.click();
         });
     }
 });
