@@ -26,4 +26,11 @@ router.get("/moveavg", adminController.viewMoveAvg);
 router.get("/forecasts", adminController.getForecasts);
 
 //#endregion Pakan&MoveAvg Function
+
+//#region Pakan&MoveAvg Function
+router.get("/user", adminController.viewUser);
+// router.get("/moveavg", adminController.viewMoveAvg);
+// router.get("/forecasts", adminController.getForecasts);
+
+//#endregion Pakan&MoveAvg Function
 module.exports = router;

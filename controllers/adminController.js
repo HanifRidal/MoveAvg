@@ -347,4 +347,14 @@ module.exports = {
     }
   },
   //#endregion Moving Average Function
+
+  //#region User Function
+  viewUser: function (req, res) {
+    res.render("admin/user/view_user", {
+      title: "Dafa Farm | User",
+      //   user: req.user,
+      //   message: req.flash("message"),
+    });
+  },
+  //#endregion User Function
 };
