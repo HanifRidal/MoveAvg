@@ -4,40 +4,43 @@
   </div>
   <div class="card-body">
     <% if (typeof error !== 'undefined' && error) { %>
-      <div class="alert alert-danger">
-        <%= error %>
-      </div>
+    <div class="alert alert-danger"><%= error %></div>
     <% } else if (typeof user === 'undefined' || user === null) { %>
-      <div class="alert alert-warning">
-        User profile not available. You may need to log in again.
-      </div>
+    <div class="alert alert-warning">
+      User profile not available. You may need to log in again.
+    </div>
     <% } else { %>
-      <div class="table-responsive">
-        <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
-          <tr>
-            <td width="30%">Fullname</td>
-            <td width="5%">:</td>
-            <td><strong><%= user.fullname || user.name || 'N/A' %></strong></td>
-          </tr>
-          <tr>
-            <td>Username</td>
-            <td>:</td>
-            <td><strong><%= user.username || 'N/A' %></strong></td>
-          </tr>
-          <tr>
-            <td>Email</td>
-            <td>:</td>
-            <td><strong><%= user.email || 'N/A' %></strong></td>
-          </tr>
-          <tr>
-            <td colspan="3" class="text-right">
-              <button class="btn btn-warning btn-sm button-update">
-                <i class="fas fa-key"></i> Change Password
-              </button>
-            </td>
-          </tr>
-        </table>
-      </div>
+    <div class="table-responsive">
+      <table
+        class="table table-bordered"
+        id="dataTable"
+        width="100%"
+        cellspacing="0"
+      >
+        <tr>
+          <td width="30%">Fullname</td>
+          <td width="5%">:</td>
+          <td><strong><%= user.fullname || user.name || 'N/A' %></strong></td>
+        </tr>
+        <tr>
+          <td>Username</td>
+          <td>:</td>
+          <td><strong><%= user.username || 'N/A' %></strong></td>
+        </tr>
+        <tr>
+          <td>Email</td>
+          <td>:</td>
+          <td><strong><%= user.email || 'N/A' %></strong></td>
+        </tr>
+        <tr>
+          <td colspan="3" class="text-right">
+            <button class="btn btn-warning btn-sm button-update">
+              <i class="fas fa-key"></i> Change Password
+            </button>
+          </td>
+        </tr>
+      </table>
+    </div>
     <% } %>
   </div>
 </div>

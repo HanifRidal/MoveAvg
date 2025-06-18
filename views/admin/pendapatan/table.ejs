@@ -1,115 +1,59 @@
-<!-- DataTales Example -->
 <div class="card shadow mb-4">
-  <div class="card-header py-3">
-    <h6 class="m-0 font-weight-bold text-primary">Pendapatan DataTable</h6>
+  <div
+    class="card-header py-3 d-flex align-items-center justify-content-between"
+  >
+    <h6 class="m-0 font-weight-bold text-primary mb-2">Pendapatan DataTable</h6>
   </div>
   <div class="card-body">
     <div class="table-responsive">
       <% if (locals.error) { %>
-        <div class="alert alert-danger">
-          <%= error %>
-        </div>
-      <% } %>
-      
-      <% if (locals.pendapatan && Array.isArray(pendapatan) && pendapatan.length > 0) {%> 
-      <table class="table table-borderless" id="dataTable" width="100%" cellspacing="0">
+      <div class="alert alert-danger"><%= error %></div>
+      <% } %> <% if (locals.pendapatan && Array.isArray(pendapatan) &&
+      pendapatan.length > 0) { var quartalData = {}; for (var i = 0; i <
+      pendapatan.length; i++) { var item = pendapatan[i]; var quartalKey =
+      item.pendapatan_quartal || 0; if (!quartalData[quartalKey]) {
+      quartalData[quartalKey] = []; } quartalData[quartalKey].push(item); } var
+      rowIndex = 0; var sortedQuartalKeys =
+      Object.keys(quartalData).sort(function(a, b) { return b - a; }); %>
+      <table
+        class="table table-bordered"
+        id="dataTable"
+        width="100%"
+        cellspacing="0"
+      >
         <thead>
-          <tr class="bg-gray-800 text-white">
+          <tr>
             <th class="text-center" style="width: 5%">No</th>
             <th class="text-right" style="width: 40%">Pendapatan/Bulan (Rp)</th>
-            <th class="text-right" style="width: 40%">Pendapatan/Quartal 4 Bulan (Rp)</th>
-            <th class="text-center" style="width: 15%">Action</th>
+            <th class="text-right" style="width: 40%">
+              Pendapatan/Quartal 4 Bulan (Rp)
+            </th>
           </tr>
         </thead>
         <tbody>
-          <% 
-            // Group by quartal
-            const quartalData = {};
-            pendapatan.forEach(item => {
-              const quartalKey = item.pendapatan_quartal || 0;
-              if (!quartalData[quartalKey]) {
-                quartalData[quartalKey] = [];
-              }
-              quartalData[quartalKey].push(item);
-            });
-            
-            let rowIndex = 0;
-            
-            // Sort quartal keys by value in descending order for newest first
-            const sortedQuartalKeys = Object.keys(quartalData).sort((a, b) => b - a);
-          %>
-          
-          <% sortedQuartalKeys.forEach(quartalKey => { %>
-            <% const items = quartalData[quartalKey]; %>
-            
-            <% items.forEach((item, index) => { %>
-              <tr class="<%= index % 2 === 0 ? 'bg-white' : 'bg-light' %>">
-                <td class="text-center align-middle"><%= ++rowIndex %></td>
-                <td class="text-right align-middle">
-                  Rp <%= item.pendapatan_bulan.toLocaleString('id-ID', {minimumFractionDigits: 0, maximumFractionDigits: 0}).replace(/,/g, '.') %>
-                </td>
-                
-                <% if (index === 0) { %>
-                  <td rowspan="<%= items.length %>" class="text-right align-middle">
-                    Rp <%= parseFloat(quartalKey).toLocaleString('id-ID', {minimumFractionDigits: 0, maximumFractionDigits: 0}).replace(/,/g, '.') %>
-                  </td>
-                <% } %>
-                
-                <td class="text-center align-middle">
-                  <a href="/admin/pendapatan/update/<%= item.id %>" class="btn btn-sm btn-warning mx-1">
-                    <i class="fas fa-edit"></i>
-                  </a>
-                  <a href="/admin/pendapatan/delete/<%= item.id %>" class="btn btn-sm btn-danger mx-1">
-                    <i class="fas fa-trash"></i>
-                  </a>
-                </td>
-              </tr>
-            <% }); %>
-            
-            <% if (items.length > 0) { %>
-              <!-- Add a small separator between quartal groups -->
-              <tr class="bg-white">
-                <td colspan="4" class="py-2"></td>
-              </tr>
+          <% for (var k = 0; k < sortedQuartalKeys.length; k++) { var quartalKey
+          = sortedQuartalKeys[k]; var items = quartalData[quartalKey]; for (var
+          j = 0; j < items.length; j++) { var item = items[j]; %>
+          <tr>
+            <td class="text-center align-middle"><%= ++rowIndex %></td>
+            <td class="text-right align-middle">
+              Rp <%= Number(item.pendapatan_bulan).toLocaleString('id-ID',
+              {minimumFractionDigits: 0, maximumFractionDigits:
+              0}).replace(/,/g, '.') %>
+            </td>
+            <% if (j === 0) { %>
+            <td rowspan="4" class="text-right align-middle">
+              Rp <%= parseFloat(quartalKey).toLocaleString('id-ID',
+              {minimumFractionDigits: 0, }).replace(/,/g, '.') %>
+            </td>
             <% } %>
-          <% }); %>
+          </tr>
+          <% } %> <% } %>
         </tbody>
       </table>
       <% } else { %>
-        <div class="alert alert-info">No data available</div>
+      <p>No data available</p>
       <% } %>
     </div>
   </div>
 </div>
-
-<!-- Optional: Add DataTables styling without the default sorting -->
-<% if (locals.pendapatan && Array.isArray(pendapatan) && pendapatan.length > 0) { %>
-<script>
-  $(document).ready(function() {
-    $('#dataTable').DataTable({
-      "ordering": false,
-      "paging": true,
-      "pageLength": 10,
-      "info": true,
-      "searching": true,
-      "language": {
-        "search": "Cari:",
-        "lengthMenu": "Tampilkan _MENU_ data per halaman",
-        "info": "Menampilkan _START_ sampai _END_ dari _TOTAL_ data",
-        "paginate": {
-          "first": "Pertama",
-          "last": "Terakhir",
-          "next": "Selanjutnya",
-          "previous": "Sebelumnya"
-        }
-      },
-      "dom": '<"top"lf>rt<"bottom"ip><"clear">',
-      "drawCallback": function() {
-        // Add additional custom styling after table is drawn
-        $('.dataTables_wrapper .dataTables_filter input').addClass('form-control-sm');
-        $('.dataTables_wrapper .dataTables_length select').addClass('form-control-sm');
-      }
-    });
-  });
-</script>
-<% } %>
