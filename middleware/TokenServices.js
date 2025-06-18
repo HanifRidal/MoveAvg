@@ -6,7 +6,7 @@ const ensureAuthenticated = async (req, res, next) => {
     const token = req.cookies.authToken;
 
     if (!token) {
-        return res.redirect('/login'); // Ganti dengan URL halaman login EJS Anda
+        return res.redirect('/admin/signin'); // Ganti dengan URL halaman login EJS Anda
     }
 
     try {
@@ -25,6 +25,6 @@ const ensureAuthenticated = async (req, res, next) => {
     } catch (error) {
         console.error("Error in ensureAuthenticated (token validation with backend API):", error.message);
         res.clearCookie('authToken');
-        return res.redirect('/login');
+        return res.redirect('/admin/signin');
     }
 };

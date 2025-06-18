@@ -3,14 +3,10 @@ var router = express.Router();
 const axios = require("axios");
 
 /* GET login page. */
-router.get("/", function (req, res) {
-  res.render("index", {
-    title: "Dafa Farm | Login",
-  });
-});
+
 
 /* POST login form */
-router.post("/admin/signin", async function (req, res) {
+router.post("/process/login", async function (req, res) {
   try {
     // Send login credentials to backend API
     const apiRes = await axios.post(

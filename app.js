@@ -24,13 +24,17 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 // app.use(express.static(path.join(__dirname, "public")));
+app.get('/', (req, res) => {
+  res.redirect('/admin/signin');
+});
 app.use(express.static(path.join(__dirname, "public")));
+
 app.use(
   "/sb-admin",
   express.static(path.join(__dirname, "node_modules/startbootstrap-sb-admin-2"))
 );
 
-app.use("/", indexRouter);
+app.use("/auth", indexRouter);
 
 app.use("/users", usersRouter);
 // use admin router
@@ -40,6 +44,7 @@ app.use("/admin", adminRouter);
 app.use(function (req, res, next) {
   next(createError(404));
 });
+
 
 // error handler
 app.use(function (err, req, res, next) {
