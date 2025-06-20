@@ -13,104 +13,108 @@ module.exports = {
     }
   },
   // Add this to the module.exports object
-viewUser: async function (req, res) {
-  try {
-    // Mock user data for development - REPLACE THIS WITH YOUR ACTUAL API CALL
-    // const userData = {
-    //   fullname: "User Example",
-    //   username: "user_example",
-    //   email: "user@example.com"
-    // };
-    let userData;
-    const userAuthToken = req.cookies.authToken;
-    const response = await axios.get('http://localhost:3001/api/auth/profile', {
-        headers: { 'Cookie': `authToken=${userAuthToken}` },
-        withCredentials: true
+  viewUser: async function (req, res) {
+    try {
+      // Mock user data for development - REPLACE THIS WITH YOUR ACTUAL API CALL
+      // const userData = {
+      //   fullname: "User Example",
+      //   username: "user_example",
+      //   email: "user@example.com"
+      // };
+      let userData;
+      const userAuthToken = req.cookies.authToken;
+      const response = await axios.get(
+        "http://localhost:3001/api/auth/profile",
+        {
+          headers: { Cookie: `authToken=${userAuthToken}` },
+          withCredentials: true,
+        }
+      );
+      userData = response.data.data; // This is where your user object is located
+
+      // Render the view and pass the user data
+      res.render("admin/user/view_user", {
+        title: "Dafa Farm | User Profile",
+        user: userData, // THIS IS CRITICAL - pass user data to the view
+        error: null,
       });
-    userData = response.data.data; // This is where your user object is located
+    } catch (error) {
+      console.error("Error in viewUser:", error);
 
-    // Render the view and pass the user data
-    res.render("admin/user/view_user", {
-      title: "Dafa Farm | User Profile",
-      user: userData, // THIS IS CRITICAL - pass user data to the view
-      error: null
-    });
-    
-  } catch (error) {
-    console.error("Error in viewUser:", error);
-    
-    res.render("admin/user/view_user", {
-      title: "Dafa Farm | User Profile",
-      user: null, // Still send user as null when there's an error
-      error: "Error fetching profile data: " + error.message
-    });
-  }
-},
-
-changePassword: async function(req, res) {
-  try {
-    const { currentPassword, newPassword } = req.body;
-    
-    // Basic validation
-    if (!currentPassword || !newPassword) {
-      return res.status(400).json({
-        success: false,
-        message: "Current password and new password are required"
+      res.render("admin/user/view_user", {
+        title: "Dafa Farm | User Profile",
+        user: null, // Still send user as null when there's an error
+        error: "Error fetching profile data: " + error.message,
       });
     }
-    
-    if (newPassword.length < 8) {
-      return res.status(400).json({
-        success: false,
-        message: "New password must be at least 8 characters long"
-      });
-    }
-    
-    const userAuthToken = req.cookies.authToken;
-    const axiosConfig = {
-      headers: {
-        'Content-Type': 'application/json'
+  },
+
+  changePassword: async function (req, res) {
+    try {
+      const { currentPassword, newPassword } = req.body;
+
+      // Basic validation
+      if (!currentPassword || !newPassword) {
+        return res.status(400).json({
+          success: false,
+          message: "Current password and new password are required",
+        });
       }
-    };
-    
-    if (userAuthToken) {
-      axiosConfig.headers.Cookie = `authToken=${userAuthToken}`;
+
+      if (newPassword.length < 8) {
+        return res.status(400).json({
+          success: false,
+          message: "New password must be at least 8 characters long",
+        });
+      }
+
+      const userAuthToken = req.cookies.authToken;
+      const axiosConfig = {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      };
+
+      if (userAuthToken) {
+        axiosConfig.headers.Cookie = `authToken=${userAuthToken}`;
+      }
+
+      // Call the backend API to change password
+      const response = await axios.put(
+        "http://localhost:3001/api/auth/change_password",
+        { currentPassword, newPassword },
+        axiosConfig
+      );
+      return res.json({
+        success: true,
+        message: "Password updated successfully",
+      });
+    } catch (error) {
+      console.error(
+        "Error changing password:",
+        error.response?.data || error.message
+      );
+
+      // Handle specific error cases
+      if (error.response?.status === 401) {
+        return res.status(401).json({
+          success: false,
+          message: "Current password is incorrect",
+        });
+      } else if (error.response?.status === 400) {
+        return res.status(400).json({
+          success: false,
+          message: error.response?.data?.message || "Invalid password format",
+        });
+      }
+
+      // General error case
+      return res.status(error.response?.status || 500).json({
+        success: false,
+        message: error.response?.data?.message || "Failed to update password",
+      });
     }
-    
-    // Call the backend API to change password
-    const response = await axios.put(
-      "http://localhost:3001/api/auth/change_password", 
-      { currentPassword, newPassword },
-      axiosConfig
-    );
-    return res.json({
-      success: true,
-      message: "Password updated successfully"
-    });
-    
-  } catch (error) {
-    console.error("Error changing password:", error.response?.data || error.message);
-  
-  // Handle specific error cases
-  if (error.response?.status === 401) {
-    return res.status(401).json({
-      success: false,
-      message: "Current password is incorrect"
-    });
-  } else if (error.response?.status === 400) {
-    return res.status(400).json({
-      success: false,
-      message: error.response?.data?.message || "Invalid password format"
-    });
-  }
-  
-  // General error case
-  return res.status(error.response?.status || 500).json({
-    success: false,
-    message: error.response?.data?.message || "Failed to update password"
-  });
-  }
-},
+  },
   //#region Dashboard Function
   viewDashboard: function (req, res) {
     res.render("admin/dashboard/view_dashboard", {
@@ -124,19 +128,19 @@ changePassword: async function(req, res) {
   //#region Telur Fucntion
   viewTelur: async function (req, res) {
     try {
-
       const userAuthToken = req.cookies.authToken;
       const axiosConfig = {};
 
       if (userAuthToken) {
         axiosConfig.headers = {
-          'Cookie': `authToken=${userAuthToken}` // Meneruskan cookie ke backend API
+          Cookie: `authToken=${userAuthToken}`, // Meneruskan cookie ke backend API
         };
       }
 
       // Get telur data from API
       const response = await axios.get(
-        "http://localhost:3001/api/produksi/telur", axiosConfig
+        "http://localhost:3001/api/produksi/telur",
+        axiosConfig
       );
 
       // Extract the array from the response
@@ -185,6 +189,125 @@ changePassword: async function(req, res) {
       });
     }
   },
+
+  viewTelurByWeek: async function (req, res) {
+  try {
+    const userAuthToken = req.cookies.authToken;
+    const axiosConfig = {};
+    if (userAuthToken) {
+      axiosConfig.headers = {
+        Cookie: `authToken=${userAuthToken}`
+      };
+      axiosConfig.withCredentials = true;
+    }
+
+    console.log("Fetching weekly telur data...");
+    
+    // Fixed URL - the endpoint is "Week" not "weekly"
+    const response = await axios.get(
+      "http://localhost:3001/api/Produksi/telur/Week", 
+      axiosConfig
+    );
+    
+    console.log("Weekly telur response received:", response.status);
+    
+    // The data is in response.data.data according to your backend structure
+    const telurWeeklyArray = response.data.data || [];
+    
+    console.log(`Found ${telurWeeklyArray.length} weekly records`);
+    
+    // Send the weekly data back as JSON
+    res.json({
+      telurWeekly: telurWeeklyArray
+    });
+    
+  } catch (error) {
+    console.error("Error fetching weekly telur data:", error.response?.data || error.message);
+    res.status(500).json({
+      error: "Failed to load weekly data: " + (error.response?.data?.message || error.message)
+    });
+  }
+},
+
+// Add this function to your adminController.js file
+viewTelurByMonth: async function (req, res) {
+  try {
+    const userAuthToken = req.cookies.authToken;
+    const axiosConfig = {};
+    if (userAuthToken) {
+      axiosConfig.headers = {
+        Cookie: `authToken=${userAuthToken}`
+      };
+      axiosConfig.withCredentials = true;
+    }
+
+    console.log("Fetching monthly telur data...");
+    
+    const response = await axios.get(
+      "http://localhost:3001/api/Produksi/telur/bulan", 
+      axiosConfig
+    );
+    
+    console.log("Monthly telur response received:", response.status);
+    
+    // The data is in response.data.data according to your backend structure
+    const telurMonthlyArray = response.data.data || [];
+    
+    console.log(`Found ${telurMonthlyArray.length} monthly records`);
+    
+    // Send the monthly data back as JSON
+    res.json({
+      telurMonthly: telurMonthlyArray
+    });
+    
+  } catch (error) {
+    console.error("Error fetching monthly telur data:", error.response?.data || error.message);
+    res.status(500).json({
+      error: "Failed to load monthly data: " + (error.response?.data?.message || error.message)
+    });
+  }
+},
+
+
+// Add this function to your adminController.js file
+viewTelurByQuarter: async function (req, res) {
+  try {
+    const userAuthToken = req.cookies.authToken;
+    const axiosConfig = {};
+    if (userAuthToken) {
+      axiosConfig.headers = {
+        Cookie: `authToken=${userAuthToken}`
+      };
+      axiosConfig.withCredentials = true;
+    }
+
+    console.log("Fetching quarterly telur data...");
+    
+    const response = await axios.get(
+      "http://localhost:3001/api/Produksi/telur/quarter", 
+      axiosConfig
+    );
+    
+    console.log("Quarterly telur response received:", response.status);
+    
+    // The data is in response.data.data according to your backend structure
+    const telurQuarterlyArray = response.data.data || [];
+    
+    console.log(`Found ${telurQuarterlyArray.length} quarterly records`);
+    
+    // Send the quarterly data back as JSON
+    res.json({
+      telurQuarterly: telurQuarterlyArray
+    });
+    
+  } catch (error) {
+    console.error("Error fetching quarterly telur data:", error.response?.data || error.message);
+    res.status(500).json({
+      error: "Failed to load quarterly data: " + (error.response?.data?.message || error.message)
+    });
+  }
+},
+
   addTelur: async (req, res) => {
     try {
       const { jumlah, tanggal } = req.body;
@@ -274,11 +397,14 @@ changePassword: async function(req, res) {
 
       if (userAuthToken) {
         axiosConfig.headers = {
-          'Cookie': `authToken=${userAuthToken}` // Meneruskan cookie ke backend API
+          Cookie: `authToken=${userAuthToken}`, // Meneruskan cookie ke backend API
         };
       }
       // Get telur data from API
-      const response = await axios.get("http://localhost:3001/api/pakan", axiosConfig);
+      const response = await axios.get(
+        "http://localhost:3001/api/pakan",
+        axiosConfig
+      );
 
       // Extract the array from the response
       let pakanArray;
@@ -405,10 +531,10 @@ changePassword: async function(req, res) {
     }
   },
 
-  viewPendapatan:async function (req, res) {
-    try { 
+  viewPendapatan: async function (req, res) {
+    try {
       // Get telur data from API
-      const response = await axios.get('http://localhost:3001/api/pendapatan');
+      const response = await axios.get("http://localhost:3001/api/pendapatan");
 
       // Extract the array from the response
       let pendapatanArray;
@@ -416,13 +542,14 @@ changePassword: async function(req, res) {
       if (Array.isArray(response.data)) {
         // If response.data is already an array
         pendapatanArray = response.data;
-      } else if (typeof response.data === 'object') {
+      } else if (typeof response.data === "object") {
         // If response.data is an object, look for common array properties
         // Log all keys to help find where the array might be
-        console.log('Response keys:', Object.keys(response.data));
+        console.log("Response keys:", Object.keys(response.data));
 
         // Check common array properties
-        pendapatanArray = response.data.data ||
+        pendapatanArray =
+          response.data.data ||
           response.data.pendapatan ||
           response.data.results ||
           response.data.items ||
@@ -433,7 +560,7 @@ changePassword: async function(req, res) {
           for (const key in response.data) {
             if (Array.isArray(response.data[key])) {
               pendapatanArray = response.data[key];
-              console.log('Found array in property:', key);
+              console.log("Found array in property:", key);
               break;
             }
           }
@@ -448,7 +575,7 @@ changePassword: async function(req, res) {
         pendapatan: pendapatanArray,
       });
     } catch (error) {
-      console.error('Error fetching pendapatan data:', error);
+      console.error("Error fetching pendapatan data:", error);
       res.render("admin/pendapatan/view_pendapatan", {
         title: "pendapatan",
         error: "Failed to load data",

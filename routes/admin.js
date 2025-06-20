@@ -7,6 +7,9 @@ router.get("/dashboard", adminController.viewDashboard);
 //#endregion Dashboard Function
 
 //#region Telur Function
+router.get('/telur/quarterly', adminController.viewTelurByQuarter);
+router.get('/telur/weekly', adminController.viewTelurByWeek);
+router.get('/telur/monthly', adminController.viewTelurByMonth);
 router.get("/telur", adminController.viewTelur);
 router.get("/telur/:id", adminController.getTelurById);
 router.post("/telur/update/:id", adminController.updateTelur);

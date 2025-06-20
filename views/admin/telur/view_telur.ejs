@@ -104,36 +104,380 @@ include('../../partials/script.ejs') %>
   });
 
   $(document).ready(function () {
-    // Handle edit button click
-    $("#dataTable").on("click", ".button-update", function () {
-      // Get data from button attributes
-      const id = $(this).data("id");
-      const jumlah = $(this).data("jumlah");
-      const tanggal = $(this).data("tanggal");
-
-      console.log("Editing telur data:", { id, jumlah, tanggal });
-
-      // Set form action with the correct ID
-      $("#editForm").attr("action", `/admin/telur/update/${id}`);
-
-      // Populate form fields
-      $("#editId").val(id);
-      $("#editJumlah").val(jumlah);
-      $("#editTanggal").val(formatDateForClientSide(tanggal));
+    // Handle tab switching
+    $("#mingguan-tab").on("click", function () {
+      if (!$("#mingguan").data("loaded")) {
+        loadWeeklyData();
+      }
     });
 
-    // Client-side date formatting function
-    function formatDateForClientSide(dateString) {
-      if (!dateString) return "";
+    function loadWeeklyData() {
+      $("#weeklyDataContainer").html(`
+      <div class="text-center">
+        <div class="spinner-border text-primary" role="status">
+          <span class="sr-only">Loading...</span>
+        </div>
+        <p class="mt-2">Loading weekly data...</p>
+      </div>
+    `);
 
-      // Try to parse the date
-      const date = new Date(dateString);
+      $.ajax({
+        url: "/admin/telur/weekly",
+        type: "GET",
+        dataType: "json",
+        success: function (response) {
+          console.log("Weekly data received:", response);
 
-      // Check if date is valid
-      if (isNaN(date.getTime())) return "";
+          if (response.telurWeekly && response.telurWeekly.length > 0) {
+            renderWeeklyTable(response.telurWeekly);
+          } else {
+            $("#weeklyDataContainer").html(`
+            <div class="alert alert-info">
+              <i class="fas fa-info-circle mr-2"></i> No weekly data available
+            </div>
+          `);
+          }
 
-      // Format as YYYY-MM-DD for input type="date"
-      return date.toISOString().split("T")[0];
+          $("#mingguan").data("loaded", true);
+        },
+        error: function (xhr, status, error) {
+          console.error("Error loading weekly data:", error);
+          $("#weeklyDataContainer").html(`
+          <div class="alert alert-danger">
+            <i class="fas fa-exclamation-triangle mr-2"></i>
+            Failed to load weekly data: ${xhr.responseJSON?.error || error}
+            <button class="btn btn-sm btn-outline-danger ml-2" onclick="loadWeeklyData()">
+              <i class="fas fa-sync-alt"></i> Retry
+            </button>
+          </div>
+        `);
+        },
+      });
     }
+
+    // Render weekly table based on the backend response format
+    function renderWeeklyTable(weeklyData) {
+      let tableHtml = `
+      <div class="table-responsive">
+        <table class="table table-bordered" id="weeklyDataTable" width="100%" cellspacing="0">
+          <thead>
+            <tr>
+              <th>Week</th>
+              <th>Year</th>
+              <th>Start Date</th>
+              <th>End Date</th>
+              <th>Total Telur (kg)</th>
+            </tr>
+          </thead>
+          <tbody>
+    `;
+
+      weeklyData.forEach((item) => {
+        // Format dates using a helper function
+        const startDate = formatDateForDisplay(item.start_date);
+        const endDate = formatDateForDisplay(item.end_date);
+
+        tableHtml += `
+        <tr>
+          <td>${item.week_number}</td>
+          <td>${item.year}</td>
+          <td>${startDate}</td>
+          <td>${endDate}</td>
+          <td>${item.total_telur_kg.toLocaleString("id-ID")}</td>
+        </tr>
+      `;
+      });
+
+      tableHtml += `
+          </tbody>
+        </table>
+      </div>
+    `;
+
+      $("#weeklyDataContainer").html(tableHtml);
+
+      // Initialize DataTable with sorting options
+      $("#weeklyDataTable").DataTable({
+        order: [
+          [1, "desc"],
+          [0, "desc"],
+        ], // Sort by year desc, then by week desc
+        language: {
+          thousands: ".",
+        },
+      });
+    }
+    // Handle monthly data tab
+    $("#bulanan-tab").on("click", function () {
+      if (!$("#bulanan").data("loaded")) {
+        loadMonthlyData();
+      }
+    });
+
+    function loadMonthlyData() {
+      $("#monthlyDataContainer").html(`
+    <div class="text-center">
+      <div class="spinner-border text-primary" role="status">
+        <span class="sr-only">Loading...</span>
+      </div>
+      <p class="mt-2">Loading monthly data...</p>
+    </div>
+  `);
+
+      $.ajax({
+        url: "/admin/telur/monthly",
+        type: "GET",
+        dataType: "json",
+        success: function (response) {
+          console.log("Monthly data received:", response);
+
+          if (response.telurMonthly && response.telurMonthly.length > 0) {
+            renderMonthlyTable(response.telurMonthly);
+          } else {
+            $("#monthlyDataContainer").html(`
+          <div class="alert alert-info">
+            <i class="fas fa-info-circle mr-2"></i> No monthly data available
+          </div>
+        `);
+          }
+
+          $("#bulanan").data("loaded", true);
+        },
+        error: function (xhr, status, error) {
+          console.error("Error loading monthly data:", error);
+          $("#monthlyDataContainer").html(`
+        <div class="alert alert-danger">
+          <i class="fas fa-exclamation-triangle mr-2"></i>
+          Failed to load monthly data: ${xhr.responseJSON?.error || error}
+          <button class="btn btn-sm btn-outline-danger ml-2" onclick="loadMonthlyData()">
+            <i class="fas fa-sync-alt"></i> Retry
+          </button>
+        </div>
+      `);
+        },
+      });
+    }
+
+    // Render monthly table based on the backend response format
+    function renderMonthlyTable(monthlyData) {
+      // Get month name function
+      function getMonthName(monthNumber) {
+        const months = [
+          "Januari",
+          "Februari",
+          "Maret",
+          "April",
+          "Mei",
+          "Juni",
+          "Juli",
+          "Agustus",
+          "September",
+          "Oktober",
+          "November",
+          "Desember",
+        ];
+        return months[monthNumber - 1] || "Unknown";
+      }
+
+      let tableHtml = `
+    <div class="table-responsive">
+      <table class="table table-bordered" id="monthlyDataTable" width="100%" cellspacing="0">
+        <thead>
+          <tr>
+            <th>Bulan</th>
+            <th>Tahun</th>
+            <th>Total Telur (kg)</th>
+            <th>Jumlah Hari</th>
+            <th>Rata-rata Harian (kg)</th>
+          </tr>
+        </thead>
+        <tbody>
+  `;
+
+      monthlyData.forEach((item) => {
+        tableHtml += `
+      <tr>
+        <td>${getMonthName(item.bulan)}</td>
+        <td>${item.tahun}</td>
+        <td>${item.total_telur_kg.toLocaleString("id-ID")}</td>
+        <td>${item.jumlah_hari}</td>
+        <td>${item.rata_rata_harian.toLocaleString("id-ID", {
+          minimumFractionDigits: 1,
+          maximumFractionDigits: 1,
+        })}</td>
+      </tr>
+    `;
+      });
+
+      tableHtml += `
+        </tbody>
+      </table>
+    </div>
+  `;
+
+      $("#monthlyDataContainer").html(tableHtml);
+
+      // Initialize DataTable with sorting options
+      $("#monthlyDataTable").DataTable({
+        order: [
+          [1, "desc"],
+          [0, "desc"],
+        ], // Sort by year desc, then by month desc
+        language: {
+          thousands: ".",
+        },
+      });
+    }
+
+    // Handle quarterly data tab
+    $("#triwulan-tab").on("click", function () {
+      if (!$("#triwulan").data("loaded")) {
+        loadQuarterlyData();
+      }
+    });
+
+    function loadQuarterlyData() {
+      $("#quarterlyDataContainer").html(`
+    <div class="text-center">
+      <div class="spinner-border text-primary" role="status">
+        <span class="sr-only">Loading...</span>
+      </div>
+      <p class="mt-2">Loading quarterly data...</p>
+    </div>
+  `);
+
+      $.ajax({
+        url: "/admin/telur/quarterly",
+        type: "GET",
+        dataType: "json",
+        success: function (response) {
+          console.log("Quarterly data received:", response);
+
+          if (response.telurQuarterly && response.telurQuarterly.length > 0) {
+            renderQuarterlyTable(response.telurQuarterly);
+          } else {
+            $("#quarterlyDataContainer").html(`
+          <div class="alert alert-info">
+            <i class="fas fa-info-circle mr-2"></i> No quarterly data available
+          </div>
+        `);
+          }
+
+          $("#triwulan").data("loaded", true);
+        },
+        error: function (xhr, status, error) {
+          console.error("Error loading quarterly data:", error);
+          $("#quarterlyDataContainer").html(`
+        <div class="alert alert-danger">
+          <i class="fas fa-exclamation-triangle mr-2"></i>
+          Failed to load quarterly data: ${xhr.responseJSON?.error || error}
+          <button class="btn btn-sm btn-outline-danger ml-2" onclick="loadQuarterlyData()">
+            <i class="fas fa-sync-alt"></i> Retry
+          </button>
+        </div>
+      `);
+        },
+      });
+    }
+
+    // Render quarterly table based on the backend response format
+    function renderQuarterlyTable(quarterlyData) {
+      // Get quarter name function
+      function getQuarterName(quarterNumber) {
+        return `Q${quarterNumber}`;
+      }
+
+      let tableHtml = `
+    <div class="table-responsive">
+      <table class="table table-bordered" id="quarterlyDataTable" width="100%" cellspacing="0">
+        <thead>
+          <tr>
+            <th>Triwulan</th>
+            <th>Tahun</th>
+            <th>Periode</th>
+            <th>Total Telur (kg)</th>
+            <th>Jumlah Hari</th>
+            <th>Rata-rata Harian (kg)</th>
+          </tr>
+        </thead>
+        <tbody>
+  `;
+
+      quarterlyData.forEach((item) => {
+        // Format dates
+        const startDate = formatDateForDisplay(item.start_date);
+        const endDate = formatDateForDisplay(item.end_date);
+        const period = `${startDate} - ${endDate}`;
+
+        tableHtml += `
+      <tr>
+        <td>${getQuarterName(item.quarter)}</td>
+        <td>${item.year}</td>
+        <td>${period}</td>
+        <td>${item.total_telur_kg.toLocaleString("id-ID")}</td>
+        <td>${item.days_count}</td>
+        <td>${item.average_daily_production.toLocaleString("id-ID", {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        })}</td>
+      </tr>
+    `;
+      });
+
+      tableHtml += `
+        </tbody>
+      </table>
+    </div>
+  `;
+
+      $("#quarterlyDataContainer").html(tableHtml);
+
+      // Initialize DataTable with sorting options
+      $("#quarterlyDataTable").DataTable({
+        order: [
+          [1, "desc"],
+          [0, "desc"],
+        ], // Sort by year desc, then by quarter desc
+        language: {
+          thousands: ".",
+        },
+      });
+    }
+
+    // Format date for display
+    function formatDateForDisplay(dateString) {
+      if (!dateString) return "N/A";
+
+      try {
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) return dateString;
+
+        return date.toLocaleDateString("id-ID", {
+          day: "2-digit",
+          month: "long",
+          year: "numeric",
+        });
+      } catch (e) {
+        return dateString;
+      }
+    }
+
+    window.loadWeeklyData = loadWeeklyData;
+    window.loadMonthlyData = loadMonthlyData;
+    window.loadQuarterlyData = loadQuarterlyData;
+
+    // // Client-side date formatting function
+    // function formatDateForClientSide(dateString) {
+    //   if (!dateString) return "";
+
+    //   // Try to parse the date
+    //   const date = new Date(dateString);
+
+    //   // Check if date is valid
+    //   if (isNaN(date.getTime())) return "";
+
+    //   // Format as YYYY-MM-DD for input type="date"
+    //   return date.toISOString().split("T")[0];
+    // }
   });
 </script>
