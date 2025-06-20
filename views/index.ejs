@@ -43,7 +43,11 @@
                         DAFA FARM MANAGEMENT SYSTEM
                       </h1>
                     </div>
-                    <form class="user" action="/auth/process/login" method="POST">
+                    <form
+                      class="user"
+                      action="/auth/process/login"
+                      method="POST"
+                    >
                       <div class="form-group">
                         <input
                           type="text"
@@ -70,6 +74,12 @@
                         Login
                       </button>
                     </form>
+
+                    <% if (typeof loginError !== 'undefined' && loginError) { %>
+                    <script>
+                      alert("Incorrect username or password!");
+                    </script>
+                    <% } %>
                   </div>
                 </div>
               </div>

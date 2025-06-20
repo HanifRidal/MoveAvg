@@ -1,81 +1,139 @@
 <%- include('../../partials/header.ejs') %>
-  <!-- Page Wrapper -->
-  <div id="wrapper">
-    <%- include('../../partials/sidebar.ejs') %>
+<!-- Page Wrapper -->
+<div id="wrapper">
+  <%- include('../../partials/sidebar.ejs') %>
 
-      <!-- Content Wrapper -->
-      <div id="content-wrapper" class="d-flex flex-column">
-        <!-- Main Content -->
-        <div id="content">
-          <%- include('../../partials/navbar.ejs') %>
+  <!-- Content Wrapper -->
+  <div id="content-wrapper" class="d-flex flex-column">
+    <!-- Main Content -->
+    <div id="content">
+      <%- include('../../partials/navbar.ejs') %>
 
-            <!-- Begin Page Content -->
-            <div class="container-fluid">
-              <!-- Page Heading -->
-              <h1 class="h3 mb-4 text-gray-800">Telur</h1>
-              <!-- End of Page Heading -->
-
-              <%- include('./table', { telur: telur }) %>
+      <!-- Begin Page Content -->
+      <div class="container-fluid">
+        <div class="mt-4">
+          <h1 class="h3 mb-4 text-gray-800">Data Management Telur</h1>
+          <ul class="nav nav-tabs mb-4" id="telurTab" role="tablist">
+            <li class="nav-item">
+              <a
+                class="nav-link active"
+                id="harian-tab"
+                data-toggle="tab"
+                href="#harian"
+                role="tab"
+                >Data Telur / Hari</a
+              >
+            </li>
+            <li class="nav-item">
+              <a
+                class="nav-link"
+                id="mingguan-tab"
+                data-toggle="tab"
+                href="#mingguan"
+                role="tab"
+                >Data Telur / Minggu</a
+              >
+            </li>
+            <li class="nav-item">
+              <a
+                class="nav-link"
+                id="bulanan-tab"
+                data-toggle="tab"
+                href="#bulanan"
+                role="tab"
+                >Data Telur / Bulan</a
+              >
+            </li>
+            <li class="nav-item">
+              <a
+                class="nav-link"
+                id="triwulan-tab"
+                data-toggle="tab"
+                href="#triwulan"
+                role="tab"
+                >Data Telur / 3 Bulan</a
+              >
+            </li>
+          </ul>
+          <div class="tab-content card p-4" id="telurTabContent">
+            <div class="tab-pane fade show active" id="harian" role="tabpanel">
+              <%- include('./table_hari', { telur: telur }) %>
             </div>
-            <!-- /.container-fluid -->
+            <div class="tab-pane fade" id="mingguan" role="tabpanel">
+              <%- include('./table_minggu') %>
+            </div>
+            <div class="tab-pane fade" id="bulanan" role="tabpanel">
+              <%- include('./table_bulan') %>
+            </div>
+            <div class="tab-pane fade" id="triwulan" role="tabpanel">
+              <%- include('table_triwulan') %>
+            </div>
+          </div>
         </div>
-        <!-- End of Main Content -->
-
-        <%- include('../../partials/footer.ejs') %>
       </div>
-      <!-- End of Content Wrapper -->
+      <!-- /.container-fluid -->
+    </div>
+    <!-- End of Main Content -->
+
+    <%- include('../../partials/footer.ejs') %>
   </div>
-  <!-- End of Page Wrapper -->
+  <!-- End of Content Wrapper -->
+</div>
+<!-- End of Page Wrapper -->
 
-  <!-- Scroll to Top Button-->
-  <a class="scroll-to-top rounded" href="#page-top">
-    <i class="fas fa-angle-up"></i>
-  </a>
+<!-- Scroll to Top Button-->
+<a class="scroll-to-top rounded" href="#page-top">
+  <i class="fas fa-angle-up"></i>
+</a>
 
-  <%- include('add_modal.ejs') %> 
-  <%- include('edit_modal.ejs') %> 
-  <%- include('../../partials/logout_modal.ejs') %> 
-  <%- include('../../partials/script.ejs') %>
+<%- include('add_modal.ejs') %> <%- include('edit_modal.ejs') %> <%-
+include('../../partials/logout_modal.ejs') %> <%-
+include('../../partials/script.ejs') %>
 
-          <script>
-            $("#dataTable").on("click", ".button-update", function () {
-              $("#editModal").modal("show");
-            });
-            $('form').on('submit', function () {
-              $(this).find('button[type="submit"]').prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Adding...');
-            });
+<script>
+  $("#dataTable").on("click", ".button-update", function () {
+    $("#editModal").modal("show");
+  });
+  $("form").on("submit", function () {
+    $(this)
+      .find('button[type="submit"]')
+      .prop("disabled", true)
+      .html(
+        '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Adding...'
+      );
+  });
 
-            $(document).ready(function () {
-              // Handle edit button click
-              $("#dataTable").on("click", ".button-update", function () {
-                // Get data from button attributes
-                const id = $(this).data('id');
-                const jumlah = $(this).data('jumlah');
-                const tanggal = $(this).data('tanggal');
+  $(document).ready(function () {
+    // Handle edit button click
+    $("#dataTable").on("click", ".button-update", function () {
+      // Get data from button attributes
+      const id = $(this).data("id");
+      const jumlah = $(this).data("jumlah");
+      const tanggal = $(this).data("tanggal");
 
-                console.log("Editing telur data:", { id, jumlah, tanggal });
+      console.log("Editing telur data:", { id, jumlah, tanggal });
 
-                // Set form action with the correct ID
-                $("#editForm").attr("action", `/admin/telur/update/${id}`);
+      // Set form action with the correct ID
+      $("#editForm").attr("action", `/admin/telur/update/${id}`);
 
-                // Populate form fields
-                $("#editId").val(id);
-                $("#editJumlah").val(jumlah);
-                $("#editTanggal").val(formatDateForClientSide(tanggal));
-              });
+      // Populate form fields
+      $("#editId").val(id);
+      $("#editJumlah").val(jumlah);
+      $("#editTanggal").val(formatDateForClientSide(tanggal));
+    });
 
-              // Client-side date formatting function
-              function formatDateForClientSide(dateString) {
-                if (!dateString) return '';
+    // Client-side date formatting function
+    function formatDateForClientSide(dateString) {
+      if (!dateString) return "";
 
-                // Try to parse the date
-                const date = new Date(dateString);
+      // Try to parse the date
+      const date = new Date(dateString);
 
-                // Check if date is valid
-                if (isNaN(date.getTime())) return '';
+      // Check if date is valid
+      if (isNaN(date.getTime())) return "";
 
-                // Format as YYYY-MM-DD for input type="date"
-                return date.toISOString().split('T')[0];
-              }
-            });
-          </script>
+      // Format as YYYY-MM-DD for input type="date"
+      return date.toISOString().split("T")[0];
+    }
+  });
+</script>

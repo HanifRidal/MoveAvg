@@ -1,0 +1,55 @@
+<!-- DataTales Example -->
+<div class="card shadow mb-4">
+  <div class="card-body">
+    <div class="table-responsive">
+      <% if (locals.error) { %>
+      <div class="alert alert-danger"><%= error %></div>
+      <!-- Debug info -->
+      <div
+        style="
+          background: #f8f9fc;
+          padding: 10px;
+          margin-bottom: 10px;
+          border: 1px solid #ddd;
+        "
+      >
+        <strong>Debug Info:</strong>
+        <pre>
+        <%= typeof telur !== 'undefined' ? `Data type: ${typeof telur}, Is array: ${Array.isArray(telur)}, Length: ${Array.isArray(telur) ? telur.length : 'N/A'}` : 'telur is undefined' %></pre
+        >
+        <% if (typeof telur !=='undefined' && Array.isArray(telur) &&
+        telur.length> 0) { %>
+        <strong>First item properties:</strong>
+        <%= Object.keys(telur[0]).join(', ') %> <% } %>
+      </div>
+      <% } %> <% if (locals.telur && Array.isArray(telur) && telur.length > 0)
+      {%> <% console.log("Telur data:", JSON.stringify(telur)); %>
+      <table
+        class="table table-bordered"
+        id="dataTable"
+        width="100%"
+        cellspacing="0"
+      >
+        <thead>
+          <tr>
+            <th>No</th>
+            <th>Tanggal</th>
+            <th>Butir Telur/Triwulan</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% telur.forEach(item=> { %>
+          <tr>
+            <td><%= item.Id || item.id || ' N/A' %></td>
+            <td><%= formatDateIndonesian(item.Tanggal || item.tanggal) %></td>
+            <td><%= item.Telur_kg || item.telur_kg || 'N/A' %></td>
+          </tr>
+          <% }) %>
+        </tbody>
+      </table>
+      <% } else { %>
+      <p>No data available</p>
+      <% } %>
+    </div>
+  </div>
+</div>
